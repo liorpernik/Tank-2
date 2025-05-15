@@ -1,5 +1,7 @@
 #ifndef SATELLITEVIEW_H
 #define SATELLITEVIEW_H
+#include <cstddef>
+
 class SatelliteView {
 public:
     virtual ~SatelliteView() {}
