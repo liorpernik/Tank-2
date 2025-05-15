@@ -1,5 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
+#include <cstddef>
+
+class TankAlgorithm;
+class SatelliteView;
 
 class Player {
 public:
