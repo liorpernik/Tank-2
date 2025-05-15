@@ -1,7 +1,8 @@
 #ifndef TANKALGORITHM_H
 #define TANKALGORITHM_H
-class ActionRequest;
+
 class BattleInfo;
+enum class ActionRequest : int;
 
 class TankAlgorithm {
 public:
