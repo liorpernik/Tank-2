@@ -11,6 +11,7 @@
 #include <fstream>
 #include <algorithm>
 
+enum Direction { U, UR, R, DR, D, DL, L, UL, None};
 using std::string,std::unique_ptr,std::vector,std::map,std::pair;
 
 class GameManager {
@@ -25,6 +26,8 @@ private:
         int player_index;
         int tank_index;
         pair<size_t,size_t> pos; //{row,col}
+        Direction dir;
+        int remaining_shells;
         ActionRequest last_action=ActionRequest::DoNothing;
         bool last_action_success =true;
         bool alive = true;
@@ -34,15 +37,18 @@ private:
     // Game state
     vector<TankData> tanks;
     vector<unique_ptr<Player>> players;
-    size_t max_steps;
-    size_t current_step = 0;
-    size_t num_shells;
-    size_t rows,cols;
+    int max_steps;
+    int current_step = 0;
+    int num_shells;
+    int rows;
+    int cols;
     vector<string> logs;
     string output_file;
 
     // Tank count tracking
-    map<int, int> playerTankCounts = {{1, 0}, {2, 0}};
+    map<int, int> player_tank_count = {{1, 0}, {2, 0}};
+    map<int, int> player_shell_count = {{1, 0}, {2, 0}};
+
 
     // Factories
     unique_ptr<PlayerFactory> player_factory;
@@ -52,12 +58,10 @@ private:
     void processRound();
     void moveShells(); // and all helpers
     void applyAction();
-    void countDown();
-
 
     // Helper functions for readBoard
     void parseMetadata(std::ifstream& file, bool& hasErrors, std::ofstream& errorLog);
-    bool tryParseMetadata(const std::string& line, const std::string& key,size_t& value, bool& hasErrors, std::ofstream& errorLog);
+    bool tryParseMetadata(const std::string& line, const std::string& key,int& value, bool& hasErrors, std::ofstream& errorLog);
     bool hasAllMetadata() const;
     void processMapRows(std::ifstream& file, bool& hasErrors, std::ofstream& errorLog);
     void checkExcessColumns(const std::string& line, size_t row,bool& hasErrors, std::ofstream& errorLog);

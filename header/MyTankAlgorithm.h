@@ -9,7 +9,8 @@ using std::unique_ptr,std::make_unique;
 class MyTankAlgorithm : public TankAlgorithm {
     int player_index;
     int tank_index;
-    int steps_since_last_shot = 0;
+    int shoot_cooldown = 0;
+    int backward_cooldown = 0;
 public:
     MyTankAlgorithm(int player_index, int tank_index);
 

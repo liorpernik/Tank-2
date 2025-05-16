@@ -12,7 +12,7 @@ class MyPlayer : public Player {
     int player_index;
     size_t map_width;
     size_t map_height;
-    //BattleInfo last_two_battle_info[2] or vector<BattleInfo> battle_infos? TODO: class that implements BattleInfo
+    // TODO: class that implements BattleInfo, here, DataStructure to handle last 2 sequential battleinfos(to determine direction)
 	vector<int> last_battle_info_reqs;
 	vector<unique_ptr<MyTankAlgorithm>> tanks;
 

@@ -37,19 +37,19 @@ void GameManager::sortTanksByBoardPosition() {
 		return (a.pos.first == b.pos.first) ? (a.pos.second < a.pos.second ) : (a.pos.first < b.pos.first);});
 }
 void GameManager::validateTankCounts() {
-	if (playerTankCounts[1] == 0 && playerTankCounts[2] == 0) {
+	if (player_tank_count[1] == 0 && player_tank_count[2] == 0) {
 		logs.push_back("Tie, both players have zero tanks");
 		writeOutput();
 		throw runtime_error("Game ended before start - both players have no tanks");
 	}
-	else if (playerTankCounts[1] == 0) {
-		logs.push_back("Player 2 won with " + std::to_string(playerTankCounts[2]) +
+	else if (player_tank_count[1] == 0) {
+		logs.push_back("Player 2 won with " + std::to_string(player_tank_count[2]) +
 					  " tanks still alive (Player 1 had no tanks)");
 		writeOutput();
 		throw runtime_error("Game ended before start - Player 1 has no tanks");
 	}
-	else if (playerTankCounts[2] == 0) {
-		logs.push_back("Player 1 won with " + std::to_string(playerTankCounts[1]) +
+	else if (player_tank_count[2] == 0) {
+		logs.push_back("Player 1 won with " + std::to_string(player_tank_count[1]) +
 					  " tanks still alive (Player 2 had no tanks)");
 		writeOutput();
 		throw runtime_error("Game ended before start - Player 2 has no tanks");
@@ -78,7 +78,7 @@ bool GameManager::hasAllMetadata() const {
 	return max_steps > 0 && num_shells > 0 && rows > 0 && cols > 0;
 }
 
-bool GameManager::tryParseMetadata(const string& line, const string& key,size_t& value, bool& hasErrors, ofstream& errorLog) {
+bool GameManager::tryParseMetadata(const string& line, const string& key,int& value, bool& hasErrors, ofstream& errorLog) {
     if (line.find(key) != string::npos) {
         size_t equalPos = line.find('=');
         if (equalPos != string::npos) {
@@ -160,8 +160,9 @@ void GameManager::handleTank(int player_id, size_t row, size_t col,bool& hasErro
 	}
 	// Create the tank
 	try {
-		int tank_index = playerTankCounts[player_id]++;
-		tanks.push_back({tank_factory->create(player_id, tank_index),player_id,tank_index,{col,row}});
+		int tank_index = player_tank_count[player_id]++;
+		tanks.push_back({tank_factory->create(player_id, tank_index),player_id,tank_index,{col,row}, player_id==1? Direction::L:Direction::R,num_shells});
+		player_shell_count[player_id] += num_shells;
 	} catch (const std::exception& e) {
 		hasErrors = true;
 		errorLog << "Failed to create tank " << player_id << " at (" << row << "," << col << "): " << e.what() << "\n";
@@ -200,8 +201,8 @@ bool GameManager::isGameOver() const {
 
 	return p1_tanks == 0 ||   // Player 1 eliminated
 		   p2_tanks == 0 ||   // Player 2 eliminated
-		   current_step >= max_steps;  // Timeout
-	//todo - add the cooldown steps_since_no_shells after implemented
+		   current_step >= max_steps; // Timeout
+
 }
 // Output Functions
 string GameManager::actionToString(ActionRequest action) {
