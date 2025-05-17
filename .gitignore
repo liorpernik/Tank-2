@@ -31,3 +31,7 @@
 *.out
 *.app
 *.txt
+
+cmake-build-debug/
+inputs/
+.idea

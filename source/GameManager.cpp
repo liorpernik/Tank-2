@@ -1,4 +1,11 @@
 #include "../header/GameManager.h"
+#include "../header/MyTankAlgorithm.h"
+#include "../header/MyPlayer.h"
+#include "../header/Mine.h"
+#include "../header/Wall.h"
+#include "../header/Shell.h"
+#include "../header/Tank.h"
+
 using std::getline,std::invalid_argument,std::runtime_error,std::ifstream,std::ofstream,std::stoi,std::sort,std::count_if;
 
 GameManager::GameManager(unique_ptr<PlayerFactory> playerFactory,unique_ptr<TankAlgorithmFactory> tankFactory)
@@ -27,28 +34,39 @@ void GameManager::readBoard(const string& filePath) {
     }
 
     // Initialize players and output
-	sortTanksByBoardPosition();
+	// sortTanksByBoardPosition(); //is it not sorted already?
 	initializePlayers();
 	setupOutputFile(filePath);
 }
-void GameManager::sortTanksByBoardPosition() {
-	sort(tanks.begin(), tanks.end(), [](const TankData& a, const TankData& b) {
+
+std::vector<unique_ptr<Tank>> GameManager::sortTanksByBoardPosition() {
+	std::vector<unique_ptr<Tank>> all_tanks;
+	for (auto& [player_id, tanks] : player_tanks) {
+		for (auto& tank : tanks) {
+			all_tanks.push_back(move(tank));
+		}
+	}
+
+	sort(all_tanks.begin(), all_tanks.end(), [](auto& a, auto& b) {
 		// First by row, then by column
-		return (a.pos.first == b.pos.first) ? (a.pos.second < a.pos.second ) : (a.pos.first < b.pos.first);});
+		return (a->getPos().first == b->getPos().first) ? (a->getPos().second < a->getPos().second ) : (a->getPos().first < b->getPos().first);});
+
+	return all_tanks;
 }
+
 void GameManager::validateTankCounts() {
 	if (player_tank_count[1] == 0 && player_tank_count[2] == 0) {
 		logs.push_back("Tie, both players have zero tanks");
 		writeOutput();
 		throw runtime_error("Game ended before start - both players have no tanks");
 	}
-	else if (player_tank_count[1] == 0) {
+	if (player_tank_count[1] == 0) {
 		logs.push_back("Player 2 won with " + std::to_string(player_tank_count[2]) +
 					  " tanks still alive (Player 1 had no tanks)");
 		writeOutput();
 		throw runtime_error("Game ended before start - Player 1 has no tanks");
 	}
-	else if (player_tank_count[2] == 0) {
+	if (player_tank_count[2] == 0) {
 		logs.push_back("Player 1 won with " + std::to_string(player_tank_count[1]) +
 					  " tanks still alive (Player 2 had no tanks)");
 		writeOutput();
@@ -58,13 +76,22 @@ void GameManager::validateTankCounts() {
 
 void GameManager::parseMetadata(ifstream& file, bool& hasErrors, ofstream& errorLog) {
     string line;
-    while (getline(file, line)) {
+    for (int i =0; i < 5; i++) {
+    	getline(file, line);
         if (line.empty() || line[0] == ';') continue;
-
         if (tryParseMetadata(line, "MaxSteps", max_steps, hasErrors, errorLog)) continue;
         if (tryParseMetadata(line, "NumShells", num_shells, hasErrors, errorLog)) continue;
-        if (tryParseMetadata(line, "Rows", rows, hasErrors, errorLog)) continue;
-        if (tryParseMetadata(line, "Cols", cols, hasErrors, errorLog)) continue;
+
+    	// For Rows/Cols, parse into temp int first to avoid size_t->int conversion issues
+    	int temp;
+    	if (tryParseMetadata(line, "Rows", temp, hasErrors, errorLog)) {
+    		rows = static_cast<size_t>(temp);
+    		continue;
+    	}
+    	if (tryParseMetadata(line, "Cols", temp, hasErrors, errorLog)) {
+    		cols = static_cast<size_t>(temp);
+    		continue;
+    	}
 
     	if (hasAllMetadata()) break ;
     }
@@ -97,6 +124,14 @@ bool GameManager::tryParseMetadata(const string& line, const string& key,int& va
 
 void GameManager::processMapRows(ifstream& file, bool& hasErrors, ofstream& errorLog) {
     string line;
+	vector<vector<unique_ptr<GameObject>>> map(rows);
+
+	for (size_t i = 0; i < rows; ++i) {
+		for (size_t j = 0; j < cols; ++j) {
+			map[i].emplace_back(nullptr); // Replace with your specific initialization logic
+		}
+	}
+
     for (size_t row = 0; row < rows; ++row) {
         if (!getline(file, line)) {
         	hasErrors = true;
@@ -104,11 +139,13 @@ void GameManager::processMapRows(ifstream& file, bool& hasErrors, ofstream& erro
         	continue;
         }
 
-        processRowCells(line, row, hasErrors, errorLog);
+        processRowCells(line, row,map, hasErrors, errorLog);
         checkExcessColumns(line, row, hasErrors, errorLog);
     }
 
     checkExcessRows(file, hasErrors, errorLog);
+
+	board = make_unique<BoardManager>(std::move(map), rows, cols);
 }
 
 void GameManager::checkExcessColumns(const string& line, size_t row,bool& hasErrors, ofstream& errorLog) {
@@ -130,69 +167,102 @@ void GameManager::checkExcessRows(ifstream& file, bool& hasErrors,ofstream& erro
 	}
 }
 
-void GameManager::processRowCells(const string& line, size_t row,bool& hasErrors, ofstream& errorLog) {
+void GameManager::processRowCells(const string& line, size_t row,vector<vector<unique_ptr<GameObject>>>& map, bool& hasErrors, ofstream& errorLog) {
+
     for (size_t col = 0; col < cols; ++col) {
         char symbol = (col < line.size()) ? line[col] : ' ';
-        processCell(symbol, row, col, hasErrors, errorLog);
+        auto obj = processCell(symbol, row, col, hasErrors, errorLog);
+    	if (!hasErrors) map[row][col] = move(obj);
     }
 }
 
-void GameManager::processCell(char symbol, size_t row, size_t col,bool& hasErrors, ofstream& errorLog) {
+unique_ptr<GameObject> GameManager::processCell(char symbol, size_t row, size_t col,bool& hasErrors, ofstream& errorLog) {
+
+	pair pos = {static_cast<int>(row), static_cast<int>(col) };
     switch (symbol) {
         case '1': case '2':
-            handleTank(symbol - '0', row, col, hasErrors, errorLog);
-            break;
-        case '#': case '@': case ' ':
-            break; // Valid symbols, no action needed
+            return handleTank(symbol - '0', row, col, hasErrors, errorLog);
+        case '@':
+        	return std::make_unique<Mine>(pos);
+		case '#':
+			return std::make_unique<Wall>(pos);
+    	case ' ':
+            return nullptr; // Valid symbols, no action needed
         default:
         	hasErrors = true;
     		errorLog << "Unknown symbol '" << symbol << "' at (" << row << "," << col << "). Treating as empty space.\n";
     		break;
     }
+	return nullptr;
 }
 
-void GameManager::handleTank(int player_id, size_t row, size_t col,bool& hasErrors, std::ofstream& errorLog) {
+unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t col,bool& hasErrors, std::ofstream& errorLog) {
 	// Validate player ID
 	if (player_id != 1 && player_id != 2) {
 		hasErrors = true;
 		errorLog << "Invalid player ID " << player_id  << " at (" << row << "," << col << "). Ignoring.\n";
-		return;
+		return nullptr;
 	}
 	// Create the tank
 	try {
 		int tank_index = player_tank_count[player_id]++;
-		tanks.push_back({tank_factory->create(player_id, tank_index),player_id,tank_index,{col,row}, player_id==1? Direction::L:Direction::R,num_shells});
-		player_shell_count[player_id] += num_shells;
+		pair pos = {static_cast<int>(row), static_cast<int>(col) };
+		// auto obj = std::make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells);
+		// tanks.push_back({tank_factory->create(player_id, tank_index),player_id,tank_index,{col,row}, player_id==1? Direction::L:Direction::R,num_shells});
+		player_tanks[player_id].push_back(std::make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells));
+		player_shell_count[player_id] += num_shells; //???
+		return std::make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells);
 	} catch (const std::exception& e) {
 		hasErrors = true;
 		errorLog << "Failed to create tank " << player_id << " at (" << row << "," << col << "): " << e.what() << "\n";
 	}
+	return nullptr;
 }
 
 void GameManager::initializePlayers() {
 	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
+	setPlayerTankAlgorithms(1);
 	players.push_back(player_factory->create(2, rows,cols,max_steps, num_shells));
+	setPlayerTankAlgorithms(2);
+}
+
+void GameManager::setPlayerTankAlgorithms(int player_id)
+{
+	for (size_t i = 0; i < player_tanks[player_id].size(); ++i)
+	{
+		int index = static_cast<int>(i);
+		std::unique_ptr<TankAlgorithm> tank = tank_factory->create(player_id, index);
+		dynamic_cast<MyTankAlgorithm*>(tank.get())->setShells(num_shells);
+		dynamic_cast<MyPlayer*>(players[0].get())->addTank(tank);
+	}
 }
 
 void GameManager::setupOutputFile(const string& filePath) {
     size_t last_slash = filePath.find_last_of("/\\");
-    output_file = "output_" + (last_slash == string::npos ? filePath : filePath.substr(last_slash + 1)) + ".txt"; // string::npos = “not found”
+    output_file = "output_" + (last_slash == string::npos ? filePath : filePath.substr(last_slash + 1)); // string::npos = “not found”
 }
 
 void GameManager::run() {
-	while (!isGameOver() && current_step < max_steps) {
-		processRound();
-		current_step++;
-	}
+	board->printBoard(); //initial board
+	// while (!isGameOver() && current_step < max_steps) {
+	// 	processRound();
+	// 	board->printBoard();
+	// 	current_step++;
+	// }
 	logGameResult();
 	writeOutput();
+	board->writeBoardStates(output_file);
 }
 
 int GameManager::count_alive_tanks(int player_id) const {
-    return count_if(tanks.begin(), tanks.end(),
-        [player_id](const TankData& t) {
-            return t.player_index == player_id && t.alive;
-        });
+	auto& tanks_vector = player_tanks.at(player_id);  // Get reference to vector
+	return std::count_if(
+		tanks_vector.begin(),
+		tanks_vector.end(),
+		[](const auto& tank_ptr) {  // auto deduces to unique_ptr<Tank>
+			return tank_ptr->isDestroyed();
+		}
+	);
 }
 
 bool GameManager::isGameOver() const {
@@ -223,13 +293,14 @@ string GameManager::actionToString(ActionRequest action) {
 string GameManager::generateRoundOutput() {
 	vector<string> actions;
     // tanks are ordered as in board TODO - add the sort in processRound before calling the logging
-	for (const auto tank : tanks) {
-		if (!tank.alive) {
-			actions.push_back(tank.killed_this_round ? actionToString(tank.last_action) + " (killed)" : "killed");
+	std::vector<unique_ptr<Tank>> tanks = sortTanksByBoardPosition();
+	for (const auto& tank : tanks) {
+		if (!tank->isDestroyed()) {
+			actions.push_back("killed"); //tank.killed_this_round ? actionToString(tank.last_action) + " (killed)" : "killed");
 			continue;
 		}
 
-		actions.push_back(tank.last_action_success ? actionToString(tank.last_action) : actionToString(tank.last_action) + " (ignored)");
+		// actions.push_back(tank.last_action_success ? actionToString(tank.last_action) : actionToString(tank.last_action) + " (ignored)");
 	}
 	return joinActions(actions);
 }
@@ -265,4 +336,9 @@ void GameManager::writeOutput() {
 	for (const auto& line : logs) {
 		out << line << "\n";
 	}
+}
+
+GameManager::~GameManager()
+{
+	//todo: check what to delete
 }
