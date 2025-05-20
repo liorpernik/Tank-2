@@ -7,6 +7,10 @@
 #include "../common/GameObject.h"
 
 class Shell : public GameObject {
+    Direction direction;
+    int ownerId;
+    bool destroyed;
+    static const char SHELL_SYMBOL = '*';
 public:
     // Constructor
     Shell(std::pair<int,int> pos, Direction dir, int owner);
@@ -26,10 +30,5 @@ public:
     // Symbol for representation on the board
     char getSymbol() const override;
 
-private:
-    Direction direction;
-    int ownerId;
-    bool destroyed;
-    static const char SHELL_SYMBOL = '*';
 };
 #endif //SHELL_H

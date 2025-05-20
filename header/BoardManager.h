@@ -24,7 +24,7 @@ class BoardManager  {
     BoardManager(vector<vector<unique_ptr<GameObject>>> map, int rows, int cols);
     // BoardManager(string filePath);
     ~BoardManager() = default;
-    GameObject& getObjectAt(int x, int y) const;
+    GameObject* getObjectAt(int x, int y) const;
 
     void updateBoard(size_t x, size_t y, char value);
 

@@ -5,9 +5,9 @@
 
 BoardManager::BoardManager(vector<vector<unique_ptr<GameObject>>> map, int rows, int cols) :  height(rows), width(cols),map(std::move(map)) {}
 
-GameObject& BoardManager::getObjectAt(int x, int y) const {
-	if (x >= width || y >= height) return nullptr;
-	return *map[x][y];
+GameObject* BoardManager::getObjectAt(int x, int y) const {
+	if (x >= height || y >= width) return nullptr;
+	return map[x][y].get();
 }
 
 // BoardManager::BoardManager(string filePath){
@@ -123,7 +123,7 @@ void BoardManager::printBoard()
 	{
 		for (int j = 0; j < width; ++j)
 		{
-			auto& obj =map[i][j];
+			GameObject* obj = getObjectAt(i,j);//map[i][j]
 			obj ?
 				boardState << obj->getSymbol() : boardState << ' ';
 

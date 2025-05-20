@@ -21,6 +21,5 @@ class GameObject {
     virtual std::pair<int, int> getPos() { return pos; }
     virtual void setPos(std::pair<int, int> pos) { this->pos = pos; }
     virtual char getSymbol() const { return ' '; }
-
 };
 #endif //GAMEOBJECT_H
