@@ -32,6 +32,9 @@ protected:
     bool canMoveBack() ;
     void rotate(ActionRequest action);
     bool isValidMove(ActionRequest action);
+    Direction calculateDirection(int currRow, int currCol, int targetRow, int targetCol);
+    OppData getClosestOpponent();
+    int calculateActionsToOpponent(const OppData& oppPos);
 
 public:
     MyTankAlgorithm(int player_index, int tank_index);

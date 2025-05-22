@@ -193,7 +193,7 @@ bool MyTankAlgorithm::willBeHitIn(int row, int col, int t) {
 
 		auto [sr, sc] = pos;
 		Direction dir = dynamic_cast<Shell&>(object).getDirection();
-
+		if (dir == None) dir = calculateRealDirection(sr,sc,row,col);
 		for(int i =0; i<= 2 && dir != None; i++) {
 
 			auto [dr, dc] = offsets[static_cast<int>(dir)];
@@ -242,4 +242,75 @@ ActionRequest MyTankAlgorithm::determineRotation(Direction currentDir, Direction
 
 	// If no rotation required
 	return ActionRequest::DoNothing; // Arbitrary fallback
+}
+
+/**
+ * @brief Calculates the general direction from the current position to the target position.
+ *
+ * @param currRow Current row position.
+ * @param currCol Current column position.
+ * @param targetRow Target row position.
+ * @param targetCol Target column position.
+ * @return Direction to move toward the target, or current direction if already at the target.
+ */
+Direction MyTankAlgorithm::calculateDirection(int currRow, int currCol, int targetRow, int targetCol) {
+	if (currRow < targetRow && currCol == targetCol) return Direction::D;
+	if (currRow > targetRow && currCol == targetCol) return Direction::U;
+	if (currRow == targetRow && currCol < targetCol) return Direction::R;
+	if (currRow == targetRow && currCol > targetCol) return Direction::L;
+	if (currRow < targetRow && currCol < targetCol) return Direction::DR;
+	if (currRow < targetRow && currCol > targetCol) return Direction::DL;
+	if (currRow > targetRow && currCol < targetCol) return Direction::UR;
+	if (currRow > targetRow && currCol > targetCol) return Direction::UL;
+
+	return None; // Default to current direction if no match
+}
+
+OppData MyTankAlgorithm::getClosestOpponent()
+{
+	auto opponents = battle_info->getOpponents();
+	int min_movements = 10^8;
+	OppData closestOpp;
+	for (auto& opp : opponents)
+	{
+		if (min_movements > calculateActionsToOpponent(*opp))
+		{
+			closestOpp = *opp;
+		}
+	}
+
+	return closestOpp;
+}
+
+
+int MyTankAlgorithm::calculateActionsToOpponent(const OppData& opp) {
+	auto myPos = battle_info->getPosition();
+	std::pair<int, int> oppPos = opp.opponentPos;
+
+	int dx = oppPos.first - myPos.first;
+	int dy = oppPos.second - myPos.second;
+
+	Direction requiredDir = None;
+	int movements = 0;
+	int rotations = 0;
+
+	if (dx == 0 && dy == 0) {
+		return 0; // Already at opponent's position
+	}
+
+	// Determine the required direction and movements
+	if (dx != 0) {
+		requiredDir = calculateDirection(myPos.first,myPos.second,oppPos.first,oppPos.second);
+		movements = std::abs(dx);
+	} else if (dy != 0) {
+		requiredDir = calculateDirection(myPos.first,myPos.second,oppPos.first,oppPos.second);
+		movements = std::abs(dy);
+	}
+
+	// Calculate rotations to face the required direction
+	if (requiredDir == opp.opponentDir) ++rotations;
+	else rotations = 2;
+
+	// Total actions = rotations + movements
+	return rotations + movements;
 }

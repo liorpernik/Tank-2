@@ -12,7 +12,7 @@
 #include <iostream>
 
 using namespace std;
-// : public SatelliteView
+
 class BoardManager  {
   int height;
   int width;
