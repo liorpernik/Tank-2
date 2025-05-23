@@ -1,7 +1,3 @@
-//
-// Created by admin on 5/15/2025.
-//
-
 #ifndef BOARDSATELLITEVIEW_H
 #define BOARDSATELLITEVIEW_H
 #include <vector>
@@ -9,18 +5,17 @@
 
 #include "../common/SatelliteView.h"
 
-using namespace std;
+using std::pair,std::vector;
 
 class BoardSatelliteView : public SatelliteView {
     int cols;
     int rows;
     vector<vector<char>> map;
-    const std::pair<int, int> requestingTankPos; // Position of tank making the request
+    pair<int, int> requestingTankPos; // Position of tank making the request
 
 public:
-    BoardSatelliteView(std::pair<int, int> requesterPos)
-        :  requestingTankPos(requesterPos) {}
-
+    BoardSatelliteView(int r,int c) : cols(c), rows(r){map.resize(rows, vector<char>(cols, ' '));}
+    void setObjectAt(int row, int col,char c){map[row][col] = c;}
     char getObjectAt(size_t x, size_t y) const override {
 
         // Convert size_t to int for comparison with tank positions
@@ -40,13 +35,6 @@ public:
         // Empty space
         return map[posX][posY];
     }
-
-//    size_t getWidth() const override {
-//        return boardData.cols;
-//    }
-//
-//    size_t getHeight() const override {
-//        return boardData.rows;
-//    }
+    void setRequsingTankPos(pair<int, int> pos) {requestingTankPos=pos;}
 };
 #endif //BOARDSATELLITEVIEW_H
