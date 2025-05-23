@@ -7,7 +7,7 @@ using std::unique_ptr,std::make_unique;
 class MyTankAlgorithmFactory : public TankAlgorithmFactory {
 public:
     MyTankAlgorithmFactory() = default;
-    ~MyTankAlgorithmFactory() override= default;
+    ~MyTankAlgorithmFactory() override = default;
     unique_ptr<TankAlgorithm> create(int player_index, int tank_index) const override;
 };
 

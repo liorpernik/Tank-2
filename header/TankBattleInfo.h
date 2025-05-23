@@ -12,8 +12,8 @@
 #include <map>
 
 struct OppData{
-    const std::pair<int,int> opponentPos;
-    const Direction opponentDir = None;
+    std::pair<int,int> opponentPos;
+    Direction opponentDir = None;
 };
 
 static const std::vector<std::pair<int, int>> offsets = {
@@ -38,8 +38,8 @@ class TankBattleInfo : public BattleInfo {
     int backward_cooldown = 0; // Number of turns left until backward move happens
     bool cancel_backward = false; // Whether the backward move was canceled
     bool moved_backward_last = false; // Indicates immediate next back is allowed
-    std::vector<std::unique_ptr<OppData>> opponents;
-    std::map<std::pair<int,int>, GameObject&> knownObjects;
+    std::vector<OppData> opponents;
+    std::map<std::pair<int,int>, std::vector<GameObject*>> knownObjects;
 
 public:
 
@@ -71,13 +71,13 @@ public:
     void setPosition(int x, int y);
     std::pair<int, int> getPosition() const;
 
-    std::vector<std::unique_ptr<OppData>> getOpponents() const;
+    std::vector<OppData> getOpponents() const;
     // OppData* getOpponentById(int id) const;
     void addOpponent(std::pair<int,int> position, Direction dir = None);
 
     GameObject* getObjectByPosition(std::pair<int,int> pos) const;
 
-    std::map<std::pair<int, int>, GameObject&> getKnownObjects() const;
-    void setKnownObjects(std::map<std::pair<int, int>, GameObject&> knownObjects);
+    std::map<std::pair<int, int>, std::vector<GameObject*> > getKnownObjects() const;
+    void setKnownObjects(std::map<std::pair<int, int>, std::vector<GameObject*> > knownObjects);
 };
 #endif //TANKBATTLEINFO_H

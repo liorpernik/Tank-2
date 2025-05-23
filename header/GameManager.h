@@ -34,7 +34,8 @@ private:
     int num_shells=0;
     int max_steps=0;
     int current_step = 0;
-    std::map<int, std::vector<unique_ptr<Tank>>> player_tanks;
+    std::map<int, std::vector<unique_ptr<TankAlgorithm>>> player_tanks_algo;
+    std::map<int, std::vector<pair<int,int>>> player_tanks_pos;
     vector<unique_ptr<Player>> players;
     unique_ptr<BoardManager> board;
 
@@ -62,7 +63,7 @@ private:
     void processMapRows(std::ifstream& file, bool& hasErrors, std::ofstream& errorLog);
     void checkExcessColumns(const std::string& line, size_t row,bool& hasErrors, std::ofstream& errorLog);
     void checkExcessRows(std::ifstream& file, bool& hasErrors,std::ofstream& errorLog);
-    void processRowCells(const std::string& line, size_t row,vector<vector<unique_ptr<GameObject>>>& map,bool& hasErrors, std::ofstream& errorLog);
+    void processRowCells(const std::string& line, size_t row,vector<vector<vector<unique_ptr<GameObject>>>>& map,bool& hasErrors, std::ofstream& errorLog);
     unique_ptr<GameObject> processCell(char symbol, size_t row, size_t col,bool& hasErrors, std::ofstream& errorLog);
     unique_ptr<GameObject> handleTank(int player_id, size_t row, size_t col,bool& hasErrors, std::ofstream& errorLog);
     void validateTankCounts();

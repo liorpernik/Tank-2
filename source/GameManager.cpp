@@ -1,4 +1,7 @@
 #include "../header/GameManager.h"
+
+#include "../header/MyTankAlgorithmFactory.h"
+
 #include "../header/MyTankAlgorithm.h"
 #include "../header/MyPlayer.h"
 #include "../header/Mine.h"
@@ -34,24 +37,9 @@ void GameManager::readBoard(const string& filePath) {
     }
 
     // Initialize players and output
-	// sortTanksByBoardPosition(); //is it not sorted already?
-	initializePlayers();
+
+	// todo: updateBoardSateliteView();
 	setupOutputFile(filePath);
-}
-
-std::vector<unique_ptr<Tank>> GameManager::sortTanksByBoardPosition() {
-	std::vector<unique_ptr<Tank>> all_tanks;
-	for (auto& [player_id, tanks] : player_tanks) {
-		for (auto& tank : tanks) {
-			all_tanks.push_back(move(tank));
-		}
-	}
-
-	sort(all_tanks.begin(), all_tanks.end(), [](auto& a, auto& b) {
-		// First by row, then by column
-		return (a->getPos().first == b->getPos().first) ? (a->getPos().second < a->getPos().second ) : (a->getPos().first < b->getPos().first);});
-
-	return all_tanks;
 }
 
 void GameManager::validateTankCounts() {
@@ -124,11 +112,11 @@ bool GameManager::tryParseMetadata(const string& line, const string& key,int& va
 
 void GameManager::processMapRows(ifstream& file, bool& hasErrors, ofstream& errorLog) {
     string line;
-	vector<vector<unique_ptr<GameObject>>> map(rows);
+	vector<vector<vector<unique_ptr<GameObject>>>> map(rows);
 
 	for (size_t i = 0; i < rows; ++i) {
 		for (size_t j = 0; j < cols; ++j) {
-			map[i].emplace_back(nullptr); // Replace with your specific initialization logic
+			map[i].emplace_back(); // Replace with your specific initialization logic
 		}
 	}
 
@@ -167,12 +155,12 @@ void GameManager::checkExcessRows(ifstream& file, bool& hasErrors,ofstream& erro
 	}
 }
 
-void GameManager::processRowCells(const string& line, size_t row,vector<vector<unique_ptr<GameObject>>>& map, bool& hasErrors, ofstream& errorLog) {
+void GameManager::processRowCells(const string& line, size_t row,vector<vector<vector<unique_ptr<GameObject>>>>& map, bool& hasErrors, ofstream& errorLog) {
 
     for (size_t col = 0; col < cols; ++col) {
         char symbol = (col < line.size()) ? line[col] : ' ';
         auto obj = processCell(symbol, row, col, hasErrors, errorLog);
-    	if (!hasErrors) map[row][col] = move(obj);
+    	if (!hasErrors) map[row][col].push_back(move(obj));
     }
 }
 
@@ -207,9 +195,8 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 	try {
 		int tank_index = player_tank_count[player_id]++;
 		pair pos = {static_cast<int>(row), static_cast<int>(col) };
-		// auto obj = std::make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells);
-		// tanks.push_back({tank_factory->create(player_id, tank_index),player_id,tank_index,{col,row}, player_id==1? Direction::L:Direction::R,num_shells});
-		player_tanks[player_id].push_back(std::make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells));
+		player_tanks_algo[player_id].push_back(dynamic_cast<MyTankAlgorithmFactory*>(tank_factory.get())->create(player_id, tank_index));
+		player_tanks_pos[player_id].push_back(pos);
 		player_shell_count[player_id] += num_shells; //???
 		return std::make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells);
 	} catch (const std::exception& e) {
@@ -219,23 +206,23 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 	return nullptr;
 }
 
-void GameManager::initializePlayers() {
-	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
-	setPlayerTankAlgorithms(1);
-	players.push_back(player_factory->create(2, rows,cols,max_steps, num_shells));
-	setPlayerTankAlgorithms(2);
-}
+// void GameManager::initializePlayers() {
+// 	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
+// 	setPlayerTankAlgorithms(1);
+// 	players.push_back(player_factory->create(2, rows,cols,max_steps, num_shells));
+// 	setPlayerTankAlgorithms(2);
+// }
 
-void GameManager::setPlayerTankAlgorithms(int player_id)
-{
-	for (size_t i = 0; i < player_tanks[player_id].size(); ++i)
-	{
-		int index = static_cast<int>(i);
-		std::unique_ptr<TankAlgorithm> tank = tank_factory->create(player_id, index);
-		dynamic_cast<MyTankAlgorithm*>(tank.get())->setShells(num_shells);
-		dynamic_cast<MyPlayer*>(players[0].get())->addTank(tank);
-	}
-}
+// void GameManager::setPlayerTankAlgorithms(int player_id)
+// {
+// 	for (size_t i = 0; i < player_tanks[player_id].size(); ++i)
+// 	{
+// 		int index = static_cast<int>(i);
+// 		std::unique_ptr<TankAlgorithm> tank = tank_factory->create(player_id, index);
+// 		dynamic_cast<MyTankAlgorithm*>(tank.get())->setShells(num_shells);
+// 		dynamic_cast<MyPlayer*>(players[0].get())->addTank(tank);
+// 	}
+// }
 
 void GameManager::setupOutputFile(const string& filePath) {
     size_t last_slash = filePath.find_last_of("/\\");
@@ -255,14 +242,7 @@ void GameManager::run() {
 }
 
 int GameManager::count_alive_tanks(int player_id) const {
-	auto& tanks_vector = player_tanks.at(player_id);  // Get reference to vector
-	return std::count_if(
-		tanks_vector.begin(),
-		tanks_vector.end(),
-		[](const auto& tank_ptr) {  // auto deduces to unique_ptr<Tank>
-			return tank_ptr->isDestroyed();
-		}
-	);
+	return static_cast<int>(player_tanks_pos.at(player_id).size());
 }
 
 bool GameManager::isGameOver() const {
@@ -293,7 +273,7 @@ string GameManager::actionToString(ActionRequest action) {
 string GameManager::generateRoundOutput() {
 	vector<string> actions;
     // tanks are ordered as in board TODO - add the sort in processRound before calling the logging
-	std::vector<unique_ptr<Tank>> tanks = sortTanksByBoardPosition();
+	std::vector<unique_ptr<Tank>> tanks;// todo: in board sortTanksByBoardPosition();
 	for (const auto& tank : tanks) {
 		if (!tank->isDestroyed()) {
 			actions.push_back("killed"); //tank.killed_this_round ? actionToString(tank.last_action) + " (killed)" : "killed");

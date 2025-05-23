@@ -61,6 +61,7 @@ void MyTankAlgorithm::rotate(ActionRequest action) {
     case ActionRequest::MoveBackward:
     case ActionRequest::Shoot:
     case ActionRequest::DoNothing:
+    case ActionRequest::GetBattleInfo:
         break;
     }
     battle_info->setDirection(dir);
@@ -186,13 +187,14 @@ ActionRequest MyTankAlgorithm::checkForEscape() {
  * @return True if a shell will hit, false otherwise.
  */
 bool MyTankAlgorithm::willBeHitIn(int row, int col, int t) {
-	auto objects = battle_info->getKnownObjects();
-	for (auto& [pos, object]: objects) {
-		char symbol = object.getSymbol();
+	auto knownObjects = battle_info->getKnownObjects();
+	for (auto& [pos, objects]: knownObjects) {
+		auto& object = objects.size() > 1 ? objects[1] :  objects[0];
+		char symbol = object->getSymbol();
 		if (symbol != '*') continue;
 
 		auto [sr, sc] = pos;
-		Direction dir = dynamic_cast<Shell&>(object).getDirection();
+		Direction dir = dynamic_cast<Shell*>(object)->getDirection();
 
 		for(int i =0; i<= 2 && dir != None; i++) {
 
@@ -204,8 +206,8 @@ bool MyTankAlgorithm::willBeHitIn(int row, int col, int t) {
 			int pc = sc + dc * stepsAhead;
 
 			// // Wraparound edges
-			// pr = player->wrap(pr, board.getHeight());
-			// pc = player->wrap(pc, board.getWidth());
+			// pr = battle_info->wrap(pr, battle_info->getHeight());
+			// pc = battle_info->wrap(pc, battle_info->getWidth());
 
 			if (pr == row && pc == col) {
 				return true;  // A shell will hit the cell by that time
