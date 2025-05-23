@@ -7,7 +7,7 @@ BoardManager::BoardManager(vector<vector<vector<unique_ptr<GameObject>>>> map, i
 
 GameObject* BoardManager::getObjectAt(int x, int y) const {
 	if (x >= height || y >= width) return nullptr;
-	return map[x][y].size() > 1 ? map[x][y][1].get() : map[x][y][0].get(); //if more than one then shell is last and more important
+	return !map[x][y].empty() ? map[x][y].size() > 1 ? map[x][y][1].get() : map[x][y][0].get() : nullptr; //if more than one then shell is last and more important
 }
 
 void BoardManager::printBoard()
@@ -18,7 +18,7 @@ void BoardManager::printBoard()
 		for (int j = 0; j < width; ++j)
 		{
 			GameObject* obj = getObjectAt(i,j);//map[i][j]
-			obj ?
+			obj != nullptr ?
 				boardState << obj->getSymbol() : boardState << ' ';
 
 		}
