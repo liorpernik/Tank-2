@@ -15,7 +15,7 @@
 #include <algorithm>
 
 
-using std::vector,std::unique_ptr,std::string,std::stringstream,std::map;
+using std::vector,std::unique_ptr,std::string,std::stringstream,std::map,std::move,std::cerr,std::endl,std::ofstream;
 
 class BoardManager  {
   int height;
