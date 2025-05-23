@@ -14,7 +14,10 @@ class BoardSatelliteView : public SatelliteView {
     pair<int, int> requestingTankPos; // Position of tank making the request
 
 public:
-    BoardSatelliteView(int r,int c) : cols(c), rows(r){map.resize(rows, vector<char>(cols, ' '));}
+    BoardSatelliteView(int r,int c,vector<vector<char>> m) : cols(c), rows(r),map(m){}
+    void update(vector<vector<char>> m) {
+        map=m;// copy
+    }
     void setObjectAt(int row, int col,char c){map[row][col] = c;}
     char getObjectAt(size_t x, size_t y) const override {
 

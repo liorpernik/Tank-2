@@ -30,7 +30,7 @@ class BoardManager  {
     // BoardManager(string filePath);
     ~BoardManager() = default;
     GameObject* getObjectAt(int x, int y) const;
-
+  vector<vector<char>> objMapToCharMap();
     void updateBoard(size_t x, size_t y, char value);
 
     void printBoard();

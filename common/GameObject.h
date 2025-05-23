@@ -2,7 +2,7 @@
 #define GAMEOBJECT_H
 #include <utility>
 #include <vector>
-
+using std::vector,std::pair;
 enum Direction { U, UR, R, DR, D, DL, L, UL, None};
 static const vector<pair<int, int>> offsets = {
     {-1, 0},  // U
