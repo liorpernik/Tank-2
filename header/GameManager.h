@@ -3,6 +3,16 @@
 #include "../common/PlayerFactory.h"
 #include "../common/TankAlgorithmFactory.h"
 #include "../common/ActionRequest.h"
+#include "../header/MyTankAlgorithmFactory.h"
+#include "./BoardManager.h"
+#include "./BoardSatelliteView.h"
+#include "../header/MyTankAlgorithm.h"
+#include "../header/MyPlayer.h"
+#include "../header/Mine.h"
+#include "../header/Wall.h"
+#include "../header/Shell.h"
+#include "../header/Tank.h"
+
 #include <memory>
 #include <vector>
 #include <string>
@@ -11,12 +21,8 @@
 #include <fstream>
 #include <algorithm>
 
-#include "./BoardManager.h"
-#include "./BoardSatelliteView.h"
-
 using std::string,std::unique_ptr,std::vector,std::map,std::pair,std::ifstream,std::ofstream;
 
-class Tank;
 class SatelliteView;
 class GameManager {
 public:
