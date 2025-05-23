@@ -22,17 +22,18 @@ struct RotationOption {
   };
 
 class BTankAlgorithm : public MyTankAlgorithm {
-  vector<ActionRequest> rotations = {ActionRequest::RotateLeft45,ActionRequest::RotateLeft90, ActionRequest::RotateRight45, ActionRequest::RotateRight90}
+
+  vector<ActionRequest> rotations = {ActionRequest::RotateLeft45,ActionRequest::RotateLeft90, ActionRequest::RotateRight45, ActionRequest::RotateRight90};
   int countOpenSpaceInDirection(pair<int,int> pos);
   RotationOption rotationOption(ActionRequest rotation, Direction newDir,Direction oldDir );
   ActionRequest calculateBestEscapeRotation();
-  bool canShootAfterRotate(Direction targetDir, OppData opp);
-  bool shouldShootOpponent(OppData opp);
+  bool canShootAfterRotate(Direction targetDir, OppData& opp);
+  bool shouldShootOpponent(OppData& opp);
   Direction simulateRotation(ActionRequest act);
 
   public:
   BTankAlgorithm(int player_index, int tank_index);
-  ~BTankAlgorithm() = default;
+  ~BTankAlgorithm() override = default;
 
   BTankAlgorithm(const BTankAlgorithm&) = delete;
   BTankAlgorithm& operator=(const BTankAlgorithm&) = delete;

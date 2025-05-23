@@ -270,18 +270,22 @@ Direction MyTankAlgorithm::calculateDirection(int currRow, int currCol, int targ
 
 OppData MyTankAlgorithm::getClosestOpponent()
 {
-	auto opponents = battle_info->getOpponents();
-	int min_movements = 10^8;
-	OppData closestOpp;
-	for (auto& opp : opponents)
+	std::vector<OppData> opponents = battle_info->getOpponents();
+	int min_movements = 1e8;
+	int min_pos = -1;
+	int index = 0;
+	for (auto opp : opponents)
 	{
-		if (min_movements > calculateActionsToOpponent(*opp))
+		int curr_moves = calculateActionsToOpponent(opp);
+		if (min_movements > curr_moves)
 		{
-			closestOpp = *opp;
+			min_pos = index;
+			min_movements = curr_moves;
 		}
+		++index;
 	}
 
-	return closestOpp;
+	return opponents[min_pos];
 }
 
 

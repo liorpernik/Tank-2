@@ -93,7 +93,7 @@ Direction BTankAlgorithm::simulateRotation(ActionRequest act) {
  * @param opp The opponent's data.
  * @return True if shooting is advantageous, false otherwise.
  */
-bool BTankAlgorithm::shouldShootOpponent(OppData opp) {
+bool BTankAlgorithm::shouldShootOpponent(OppData& opp) {
 	if (battle_info->isWaitingToShoot() || battle_info->getRemainingShells() <= 0) {
 		return false;
 	}
@@ -122,7 +122,7 @@ bool BTankAlgorithm::shouldShootOpponent(OppData opp) {
 }
 
 // New helper function
-bool BTankAlgorithm::canShootAfterRotate(Direction targetDir, OppData opp) {
+bool BTankAlgorithm::canShootAfterRotate(Direction targetDir, OppData& opp) {
     // Simulate rotation
     Direction currentDir = battle_info->getDirection();
     battle_info->setDirection(targetDir);
@@ -221,3 +221,9 @@ int BTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
   	}
         return openCount;
   }
+
+
+void BTankAlgorithm::updateBattleInfo(BattleInfo& battleInfo)
+{
+	battle_info->setDirection(dynamic_cast<TankBattleInfo*>(&battleInfo)->getDirection());
+}

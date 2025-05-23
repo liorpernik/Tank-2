@@ -15,13 +15,13 @@ struct OppData{
     std::pair<int,int> opponentPos;
     Direction opponentDir = None;
 
-    OppData& operator=(const OppData& other) {
-        if (this != &other) { // Self-assignment check
-            opponentPos = other.opponentPos;
-            opponentDir = other.opponentDir;
-        }
-        return *this; // Return *this to allow chaining
-    };
+    // OppData& operator=(const OppData& other) {
+    //     if (this != &other) { // Self-assignment check
+    //         opponentPos = other.opponentPos;
+    //         opponentDir = other.opponentDir;
+    //     }
+    //     return *this; // Return *this to allow chaining
+    // };
 };
 
 static const std::vector<std::pair<int, int>> offsets = {

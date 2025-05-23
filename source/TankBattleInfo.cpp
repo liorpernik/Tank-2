@@ -32,7 +32,7 @@ void TankBattleInfo::setPosition(int x, int y){ position.first = x; position.sec
 std::pair<int, int> TankBattleInfo::getPosition() const { return position; }
 
 
-// std::vector<std::unique_ptr<OppData>> TankBattleInfo::getOpponents() const { return opponents; }
+std::vector<OppData> TankBattleInfo::getOpponents() const { return opponents; }
 
 void TankBattleInfo::addOpponent(std::pair<int,int> position, Direction dir)
 {
