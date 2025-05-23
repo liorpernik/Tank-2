@@ -32,25 +32,26 @@ void TankBattleInfo::setPosition(int x, int y){ position.first = x; position.sec
 std::pair<int, int> TankBattleInfo::getPosition() const { return position; }
 
 
-std::vector<std::unique_ptr<OppData>> TankBattleInfo::getOpponents() const { return opponents; }
+// std::vector<std::unique_ptr<OppData>> TankBattleInfo::getOpponents() const { return opponents; }
 
-void TankBattleInfo::addOpponent(std::pair<int,int> position, Direction dir) {
-    opponents.push_back(std::make_unique<OppData>(position,dir));
+void TankBattleInfo::addOpponent(std::pair<int,int> position, Direction dir)
+{
+    opponents.emplace_back(OppData(std::make_pair(position.first, position.second), dir));
 }
 
 GameObject* TankBattleInfo::getObjectByPosition(std::pair<int,int> pos) const
 {
-    return knownObjects.contains(pos) ? &knownObjects.at(pos) : nullptr;
+    return knownObjects.contains(pos) ? knownObjects.at(pos).size() > 1 ? knownObjects.at(pos)[1] : knownObjects.at(pos)[0] : nullptr;
 }
 //OppData* TankBattleInfo::getOpponentAt() const{
 //
 //}
-std::map<std::pair<int, int>, GameObject&> TankBattleInfo::getKnownObjects() const
+std::map<std::pair<int, int>, std::vector<GameObject*>> TankBattleInfo::getKnownObjects() const
 {
     return knownObjects;
 }
 
-void TankBattleInfo::setKnownObjects(std::map<std::pair<int, int>, GameObject&> newKnownObjects)
+void TankBattleInfo::setKnownObjects(std::map<std::pair<int, int>, std::vector<GameObject*>> newKnownObjects)
 {
-    std::copy(newKnownObjects.begin(), newKnownObjects.end(), knownObjects.begin());
+    knownObjects = std::move(newKnownObjects);
 }

@@ -16,12 +16,12 @@ using namespace std;
 class BoardManager  {
   int height;
   int width;
-  vector<vector<unique_ptr<GameObject>>> map;
+  vector<vector<vector<unique_ptr<GameObject>>>> map;
   vector<string> boardStates;
 
   public:
     BoardManager(const BoardManager&) = delete;
-    BoardManager(vector<vector<unique_ptr<GameObject>>> map, int rows, int cols);
+    BoardManager(vector<vector<vector<unique_ptr<GameObject>>>> map, int rows, int cols);
     // BoardManager(string filePath);
     ~BoardManager() = default;
     GameObject* getObjectAt(int x, int y) const;
