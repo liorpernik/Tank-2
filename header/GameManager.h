@@ -21,7 +21,7 @@
 #include <fstream>
 #include <algorithm>
 
-using std::string,std::unique_ptr,std::vector,std::map,std::pair,std::ifstream,std::ofstream;
+using std::string,std::unique_ptr,std::vector,std::map,std::pair,std::ifstream,std::ofstream,std::move,std::to_string,std::make_unique,std::exception,std::getline,std::invalid_argument,std::runtime_error,std::stoi,std::count_if;
 
 class SatelliteView;
 class GameManager {
