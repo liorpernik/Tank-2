@@ -199,9 +199,9 @@ vector<vector<char>> BoardManager::objMapToCharMap() {
             charMap.push_back(vector<char>());
             if (game_map[x][y].size()>0){
                 auto obj=game_map[x][y].size() > 1 ? game_map[x][y][1].get() : game_map[x][y][0].get();
-                charMap[x].push_back(obj->getSymbol());
+                charMap[x].push_back(obj ? obj->getSymbol(): ' ');
             }
-            else
+            else //shouldn't reach here
                 charMap[x].push_back(' ');
 
         }
