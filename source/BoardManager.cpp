@@ -1,6 +1,6 @@
 #include "../header/BoardManager.h"
 
-BoardManager::BoardManager(vector<vector<vector<unique_ptr<GameObject>>>> map, int rows, int cols) :  height(rows), width(cols),game_map(move(map)) {}
+BoardManager::BoardManager(vector<vector<vector<unique_ptr<GameObject>>>> gameMap, int rows, int cols) :  height(rows), width(cols),game_map(move(gameMap)) {}// printBoard();}
 
 GameObject* BoardManager::getObjectAt(int x, int y) const {
 	if (x >= height || y >= width) return nullptr;
@@ -190,6 +190,23 @@ void BoardManager::processCollision(vector<GameObject*>& objects) {
             }
         }
     }
+}
+
+vector<vector<char>> BoardManager::objMapToCharMap() {
+    vector<vector<char>> charMap;
+    for (int x = 0; x < height; x++) {
+        for (int y = 0; y < width; y++) {
+            charMap.push_back(vector<char>());
+            if (game_map[x][y].size()>0){
+                auto obj=game_map[x][y].size() > 1 ? game_map[x][y][1].get() : game_map[x][y][0].get();
+                charMap[x].push_back(obj->getSymbol());
+            }
+            else
+                charMap[x].push_back(' ');
+
+        }
+    }
+    return charMap;
 }
 
 void BoardManager::cleanupDestroyedObjects(pair<int,int> pos) {
