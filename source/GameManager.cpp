@@ -1,5 +1,16 @@
 #include "../header/GameManager.h"
 
+#include "../header/MyTankAlgorithmFactory.h"
+
+#include "../header/MyTankAlgorithm.h"
+#include "../header/MyPlayer.h"
+#include "../header/Mine.h"
+#include "../header/Wall.h"
+#include "../header/Shell.h"
+#include "../header/Tank.h"
+
+using std::getline,std::invalid_argument,std::runtime_error,std::ifstream,std::ofstream,std::stoi,std::sort,std::count_if;
+
 GameManager::GameManager(unique_ptr<PlayerFactory> playerFactory,unique_ptr<TankAlgorithmFactory> tankFactory)
 	: player_factory(move(playerFactory)), tank_factory(move(tankFactory)) {}
 
@@ -27,9 +38,10 @@ void GameManager::readBoard(const string& filePath) {
 
     // Initialize players and output
 
+	// todo: updateBoardSateliteView();
 	setupOutputFile(filePath);
 }
-//SatelliteView* getSatelliteView() {}
+
 void GameManager::validateTankCounts() {
 	if (player_tank_count[1] == 0 && player_tank_count[2] == 0) {
 		logs.push_back("Tie, both players have zero tanks");
@@ -37,13 +49,13 @@ void GameManager::validateTankCounts() {
 		throw runtime_error("Game ended before start - both players have no tanks");
 	}
 	if (player_tank_count[1] == 0) {
-		logs.push_back("Player 2 won with " + to_string(player_tank_count[2]) +
+		logs.push_back("Player 2 won with " + std::to_string(player_tank_count[2]) +
 					  " tanks still alive (Player 1 had no tanks)");
 		writeOutput();
 		throw runtime_error("Game ended before start - Player 1 has no tanks");
 	}
 	if (player_tank_count[2] == 0) {
-		logs.push_back("Player 1 won with " + to_string(player_tank_count[1]) +
+		logs.push_back("Player 1 won with " + std::to_string(player_tank_count[1]) +
 					  " tanks still alive (Player 2 had no tanks)");
 		writeOutput();
 		throw runtime_error("Game ended before start - Player 2 has no tanks");
@@ -99,29 +111,32 @@ bool GameManager::tryParseMetadata(const string& line, const string& key,int& va
 }
 
 void GameManager::processMapRows(ifstream& file, bool& hasErrors, ofstream& errorLog) {
-    string line;
+	string line;
 	vector<vector<vector<unique_ptr<GameObject>>>> map(rows);
 
 	for (size_t i = 0; i < rows; ++i) {
 		for (size_t j = 0; j < cols; ++j) {
-			map[i].emplace_back(); // Replace with your specific initialization logic
+			map[i].emplace_back(); // empty vec
 		}
 	}
 
-    for (size_t row = 0; row < rows; ++row) {
-        if (!getline(file, line)) {
-        	hasErrors = true;
-        	errorLog << "Row " << row << " is missing. Filling with empty cells.\n";
-        	continue;
-        }
+	for (size_t row = 0; row < rows; ++row) {
+		bool rowHadErrors = false;
 
-        processRowCells(line, row,map, hasErrors, errorLog);
-        checkExcessColumns(line, row, hasErrors, errorLog);
-    }
+		if (!getline(file, line)) {
+			hasErrors = true;
+			errorLog << "Row " << row << " is missing. Filling with empty cells.\n";
+			continue;
+		}
+		processRowCells(line, row,map, rowHadErrors, errorLog);
+		checkExcessColumns(line, row, rowHadErrors, errorLog);
 
-    checkExcessRows(file, hasErrors, errorLog);
-	board = make_unique<BoardManager>(move(map), rows, cols);
-	board_view=make_unique<BoardSatelliteView>(rows,cols,board.get()->objMapToCharMap());
+		hasErrors |= rowHadErrors;
+
+	}
+
+	checkExcessRows(file, hasErrors, errorLog);
+	board = make_unique<BoardManager>(std::move(map), rows, cols);
 }
 
 void GameManager::checkExcessColumns(const string& line, size_t row,bool& hasErrors, ofstream& errorLog) {
@@ -145,13 +160,11 @@ void GameManager::checkExcessRows(ifstream& file, bool& hasErrors,ofstream& erro
 
 void GameManager::processRowCells(const string& line, size_t row,vector<vector<vector<unique_ptr<GameObject>>>>& map, bool& hasErrors, ofstream& errorLog) {
 
-    for (size_t col = 0; col < cols; ++col) {
-        char symbol = (col < line.size()) ? line[col] : ' ';
-        auto obj = processCell(symbol, row, col, hasErrors, errorLog);
-    	if (!hasErrors) {
-    		map[row][col].push_back(move(obj));
-    	}
-    }
+	for (size_t col = 0; col < cols; ++col) {
+		char symbol = (col < line.size()) ? line[col] : ' ';
+		auto obj = processCell(symbol, row, col, hasErrors, errorLog);
+		map[row][col].push_back(move(obj));
+	}
 }
 
 unique_ptr<GameObject> GameManager::processCell(char symbol, size_t row, size_t col,bool& hasErrors, ofstream& errorLog) {
@@ -161,9 +174,9 @@ unique_ptr<GameObject> GameManager::processCell(char symbol, size_t row, size_t 
         case '1': case '2':
             return handleTank(symbol - '0', row, col, hasErrors, errorLog);
         case '@':
-        	return make_unique<Mine>(pos);
+        	return std::make_unique<Mine>(pos);
 		case '#':
-			return make_unique<Wall>(pos);
+			return std::make_unique<Wall>(pos);
     	case ' ':
             return nullptr; // Valid symbols, no action needed
         default:
@@ -173,7 +186,8 @@ unique_ptr<GameObject> GameManager::processCell(char symbol, size_t row, size_t 
     }
 	return nullptr;
 }
-unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t col,bool& hasErrors, ofstream& errorLog) {
+
+unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t col,bool& hasErrors, std::ofstream& errorLog) {
 	// Validate player ID
 	if (player_id != 1 && player_id != 2) {
 		hasErrors = true;
@@ -187,8 +201,8 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 		player_tanks_algo[player_id].push_back(dynamic_cast<MyTankAlgorithmFactory*>(tank_factory.get())->create(player_id, tank_index));
 		player_tanks_pos[player_id].push_back(pos);
 		player_shell_count[player_id] += num_shells; //???
-		return make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells);
-	} catch (const exception& e) {
+		return std::make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells);
+	} catch (const std::exception& e) {
 		hasErrors = true;
 		errorLog << "Failed to create tank " << player_id << " at (" << row << "," << col << "): " << e.what() << "\n";
 	}
@@ -207,7 +221,7 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 // 	for (size_t i = 0; i < player_tanks[player_id].size(); ++i)
 // 	{
 // 		int index = static_cast<int>(i);
-// 		unique_ptr<TankAlgorithm> tank = tank_factory->create(player_id, index);
+// 		std::unique_ptr<TankAlgorithm> tank = tank_factory->create(player_id, index);
 // 		dynamic_cast<MyTankAlgorithm*>(tank.get())->setShells(num_shells);
 // 		dynamic_cast<MyPlayer*>(players[0].get())->addTank(tank);
 // 	}
@@ -220,16 +234,11 @@ void GameManager::setupOutputFile(const string& filePath) {
 
 void GameManager::run() {
 	board->printBoard(); //initial board
-	while (!isGameOver() && current_step < max_steps) {
-		processRound();
-		dynamic_cast<BoardSatelliteView*>(board_view.get())->update(board->objMapToCharMap());
-		board->printBoard();
-
-		current_step++;
-		if (player_shell_count[0]==0&&player_shell_count[1]==0) {
-			steps_since_no_shells++;
-		}
-	}
+	// while (!isGameOver() && current_step < max_steps) {
+	// 	processRound();
+	// 	board->printBoard();
+	// 	current_step++;
+	// }
 	logGameResult();
 	writeOutput();
 	board->writeBoardStates(output_file);
@@ -245,8 +254,8 @@ bool GameManager::isGameOver() const {
 
 	return p1_tanks == 0 ||   // Player 1 eliminated
 		   p2_tanks == 0 ||   // Player 2 eliminated
-		   current_step >= max_steps|| // Timeout
-		   	steps_since_no_shells==40;
+		   current_step >= max_steps; // Timeout
+
 }
 // Output Functions
 string GameManager::actionToString(ActionRequest action) {
@@ -264,28 +273,23 @@ string GameManager::actionToString(ActionRequest action) {
     }
 }
 
-void GameManager::processRound() {
-	//board.shellMove, collision
-	//for getactions
-	//for - valid->apply->update
-}
-
 string GameManager::generateRoundOutput() {
 	vector<string> actions;
-	vector<Tank*> tanks=board->getSortedTanks();
+    // tanks are ordered as in board TODO - add the sort in processRound before calling the logging
+	std::vector<unique_ptr<Tank>> tanks;// todo: in board sortTanksByBoardPosition();
 	for (const auto& tank : tanks) {
-		string move=actionToString(tank->getLastAction());
-		if (tank->isDestroyed()) {
-			actions.push_back(tank->isKilledThisRound() ? tank->getActionSuccess()? move + " (ignored) (killed)": " (killed)" : "killed");
+		if (!tank->isDestroyed()) {
+			actions.push_back("killed"); //tank.killed_this_round ? actionToString(tank.last_action) + " (killed)" : "killed");
 			continue;
 		}
-		actions.push_back(tank->getActionSuccess() ? move : move + " (ignored)");
+
+		// actions.push_back(tank.last_action_success ? actionToString(tank.last_action) : actionToString(tank.last_action) + " (ignored)");
 	}
 	return joinActions(actions);
 }
 
-string GameManager::joinActions(const vector<string>& actions) {
-    string result;
+string GameManager::joinActions(const std::vector<std::string>& actions) {
+    std::string result;
     for (size_t i = 0; i < actions.size(); ++i) {
         if (i != 0) result += ", ";
         result += actions[i];
@@ -298,20 +302,20 @@ void GameManager::logGameResult() {
 	int p2 = count_alive_tanks(2);
 
 	if (p1 > 0 && p2 == 0) {
-		logs.push_back("Player 1 won with " + to_string(p1) + " tanks still alive");
+		logs.push_back("Player 1 won with " + std::to_string(p1) + " tanks still alive");
 	} else if (p2 > 0 && p1 == 0) {
-		logs.push_back("Player 2 won with " + to_string(p2) + " tanks still alive");
+		logs.push_back("Player 2 won with " + std::to_string(p2) + " tanks still alive");
 	} else if (current_step >= max_steps) {
-		logs.push_back("Tie, reached max steps = " + to_string(max_steps) +
-					  ", player 1 has " + to_string(p1) +
-					  " tanks, player 2 has " + to_string(p2) + " tanks");
+		logs.push_back("Tie, reached max steps = " + std::to_string(max_steps) +
+					  ", player 1 has " + std::to_string(p1) +
+					  " tanks, player 2 has " + std::to_string(p2) + " tanks");
 	} else {
 		logs.push_back("Tie, both players have zero tanks");
 	}
 }
 
 void GameManager::writeOutput() {
-	ofstream out(output_file);
+	std::ofstream out(output_file);
 	for (const auto& line : logs) {
 		out << line << "\n";
 	}
