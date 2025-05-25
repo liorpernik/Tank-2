@@ -19,7 +19,7 @@ void GameManager::readBoard(const string& filePath) {
 	if (!file) {
 		throw invalid_argument("File could not be opened");
 	}
-	
+
     ofstream errorLog("input_errors.txt");
     bool hasErrors = false;
     string line;
@@ -111,28 +111,31 @@ bool GameManager::tryParseMetadata(const string& line, const string& key,int& va
 }
 
 void GameManager::processMapRows(ifstream& file, bool& hasErrors, ofstream& errorLog) {
-    string line;
+	string line;
 	vector<vector<vector<unique_ptr<GameObject>>>> map(rows);
 
 	for (size_t i = 0; i < rows; ++i) {
 		for (size_t j = 0; j < cols; ++j) {
-			map[i].emplace_back(); // Replace with your specific initialization logic
+			map[i].emplace_back(); // empty vec
 		}
 	}
 
-    for (size_t row = 0; row < rows; ++row) {
-        if (!getline(file, line)) {
-        	hasErrors = true;
-        	errorLog << "Row " << row << " is missing. Filling with empty cells.\n";
-        	continue;
-        }
+	for (size_t row = 0; row < rows; ++row) {
+		bool rowHadErrors = false;
 
-        processRowCells(line, row,map, hasErrors, errorLog);
-        checkExcessColumns(line, row, hasErrors, errorLog);
-    }
+		if (!getline(file, line)) {
+			hasErrors = true;
+			errorLog << "Row " << row << " is missing. Filling with empty cells.\n";
+			continue;
+		}
+		processRowCells(line, row,map, rowHadErrors, errorLog);
+		checkExcessColumns(line, row, rowHadErrors, errorLog);
 
-    checkExcessRows(file, hasErrors, errorLog);
+		hasErrors |= rowHadErrors;
 
+	}
+
+	checkExcessRows(file, hasErrors, errorLog);
 	board = make_unique<BoardManager>(std::move(map), rows, cols);
 }
 
@@ -157,11 +160,11 @@ void GameManager::checkExcessRows(ifstream& file, bool& hasErrors,ofstream& erro
 
 void GameManager::processRowCells(const string& line, size_t row,vector<vector<vector<unique_ptr<GameObject>>>>& map, bool& hasErrors, ofstream& errorLog) {
 
-    for (size_t col = 0; col < cols; ++col) {
-        char symbol = (col < line.size()) ? line[col] : ' ';
-        auto obj = processCell(symbol, row, col, hasErrors, errorLog);
-    	if (!hasErrors) map[row][col].push_back(move(obj));
-    }
+	for (size_t col = 0; col < cols; ++col) {
+		char symbol = (col < line.size()) ? line[col] : ' ';
+		auto obj = processCell(symbol, row, col, hasErrors, errorLog);
+		map[row][col].push_back(move(obj));
+	}
 }
 
 unique_ptr<GameObject> GameManager::processCell(char symbol, size_t row, size_t col,bool& hasErrors, ofstream& errorLog) {
