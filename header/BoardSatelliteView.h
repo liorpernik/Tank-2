@@ -14,9 +14,9 @@ class BoardSatelliteView : public SatelliteView {
     pair<int, int> requestingTankPos; // Position of tank making the request
 
 public:
-    BoardSatelliteView(int r,int c,vector<vector<char>> m) : cols(c), rows(r),map(m){}
+    BoardSatelliteView(int r,int c,vector<vector<char>> m) : cols(c), rows(r),map(move(m)){}
     void update(vector<vector<char>> m) {
-        map=m;// copy
+        std::copy(m.begin(), m.end(), map.begin());// copy
     }
     void setObjectAt(int row, int col,char c){map[row][col] = c;}
     char getObjectAt(size_t x, size_t y) const override {
