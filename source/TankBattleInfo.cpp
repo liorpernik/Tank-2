@@ -22,8 +22,9 @@ bool TankBattleInfo::isWaitingToShoot() const { return shoot_cooldown > 0; }
 bool TankBattleInfo::isWaitingToReverse() const { return is_waiting_for_backward && backward_cooldown > 0; }
 
 void TankBattleInfo::decreaseRemainingShells(){ --remaining_shells; }
-void TankBattleInfo::setRemainingShells(int num_of_shells) { remaining_shells = num_of_shells; }
+void TankBattleInfo::setRemainingShells(int num_of_shells) { remaining_shells = num_of_shells; set_shells = true; }
 int TankBattleInfo::getRemainingShells() const { return remaining_shells; }
+bool TankBattleInfo::isShellsSet() const {return  set_shells;}
 
 void TankBattleInfo::setDirection(Direction dir){ direction = dir; }
 Direction TankBattleInfo::getDirection() const { return direction; }
@@ -33,6 +34,7 @@ std::pair<int, int> TankBattleInfo::getPosition() const { return position; }
 
 
 std::vector<OppData> TankBattleInfo::getOpponents() const { return opponents; }
+void TankBattleInfo::setOpponents(std::vector<OppData> opps) { opponents = opps; }
 
 void TankBattleInfo::addOpponent(std::pair<int,int> position, Direction dir)
 {

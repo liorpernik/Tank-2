@@ -10,7 +10,12 @@ MyTankAlgorithm::MyTankAlgorithm(int player_index, int tank_index) : player_inde
 
 void MyTankAlgorithm::updateBattleInfo(BattleInfo& info)
 {
-    (void)info;
+	auto tank_info = dynamic_cast<TankBattleInfo&>(info);
+    battle_info->setOpponents(tank_info.getOpponents());
+	battle_info->setPosition(tank_info.getPosition().first, tank_info.getPosition().second);
+	battle_info->setDirection(tank_info.getDirection());
+	battle_info->setKnownObjects(tank_info.getKnownObjects());
+	battle_info->setRemainingShells(tank_info.getRemainingShells());
 }
 
 ActionRequest MyTankAlgorithm::getAction()

@@ -49,6 +49,7 @@ class TankBattleInfo : public BattleInfo {
     std::vector<OppData> opponents;
     std::map<std::pair<int,int>, std::vector<GameObject*>> knownObjects;
 
+    bool set_shells = false;
 public:
 
     TankBattleInfo(int tank_index, int player_id);
@@ -72,6 +73,7 @@ public:
     void decreaseRemainingShells();
     void setRemainingShells(int num_of_shells);
     int getRemainingShells() const;
+    bool isShellsSet() const;
 
     void setDirection(Direction direction);
     Direction getDirection() const;
@@ -81,6 +83,7 @@ public:
 
     std::vector<OppData> getOpponents() const;
     // OppData* getOpponentById(int id) const;
+    void setOpponents(std::vector<OppData> opps);
     void addOpponent(std::pair<int,int> position, Direction dir = None);
 
     GameObject* getObjectByPosition(std::pair<int,int> pos) const;

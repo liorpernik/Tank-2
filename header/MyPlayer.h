@@ -11,8 +11,8 @@ using std::unique_ptr, std::vector;
 
 class MyPlayer : public Player {
     int player_index;
-    size_t map_width;
-    size_t map_height;
+    size_t map_width = 0;
+    size_t map_height = 0;
 	int steps_left;
 	int shells_per_tank;
     // TODO: class that implements BattleInfo, here, DataStructure to handle last 2 sequential battleinfos(to determine direction)
@@ -35,8 +35,10 @@ public:
     Direction calcShellDirection();
 	void addTank(unique_ptr<TankAlgorithm>& tank);
 	int getPlayerIndex() const;
+	void setWidth(int width);
+	void setHeight(int height);
 
-    void getBattleInfoFromSatelliteView(SatelliteView& view) const;
+    void getBattleInfoFromSatelliteView(SatelliteView& view);
 };
 
 #endif //MYPLAYER_H
