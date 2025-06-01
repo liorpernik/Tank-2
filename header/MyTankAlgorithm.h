@@ -7,7 +7,7 @@
 
 #include <memory>
 
-using std::unique_ptr,std::make_unique;
+using std::unique_ptr,std::make_unique,std::pair;
 
 class MyTankAlgorithm : public TankAlgorithm {
     int player_index;
@@ -15,19 +15,19 @@ class MyTankAlgorithm : public TankAlgorithm {
 
 protected:
     unique_ptr<TankBattleInfo> battle_info;
-    std::pair<int,int> nextStep(bool forward,const std::pair<int,int> pos, const Direction dir);
+    pair<int,int> nextStep(bool forward,const pair<int,int> pos, const Direction dir);
     Direction calculateRealDirection(int currRow, int currCol, int targetRow, int targetCol);
     ActionRequest determineRotation(Direction currentDir, Direction desiredDir);
 
     // Safety check for backward movement
     bool canSafelyBack(int backR, int backC);
     bool willBeHitIn(int row, int col, int t);
-    bool isAlignedWithOpponent(std::pair<int, int> opponentPos) ;
+    bool isAlignedWithOpponent(pair<int, int> opponentPos) ;
     ActionRequest checkForEscape();
 
     // Common decision utilities
-    bool isOccupierFree(std::pair<int, int> pos) ;
-    bool shouldShootOpponent(const std::pair<int, int>& opponentPos) ;
+    bool isOccupierFree(pair<int, int> pos) ;
+    bool shouldShootOpponent(const pair<int, int>& opponentPos) ;
     bool canMoveFwd() ;
     bool canMoveBack() ;
     void rotate(ActionRequest action);
@@ -38,6 +38,8 @@ public:
     ~MyTankAlgorithm() override = default;
     ActionRequest getAction() override;
     void updateBattleInfo(BattleInfo& info) override;
+    int getTankId() const{return tank_index;}
+    int getOwnerId() const{return player_index;}
     // private:
 //
 //     ActionRequest decideNextAction();

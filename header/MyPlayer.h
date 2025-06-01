@@ -6,7 +6,6 @@
 #include <vector>
 #include <memory>
 
-
 using std::unique_ptr, std::vector;
 
 class MyPlayer : public Player {
