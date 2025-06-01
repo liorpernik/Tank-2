@@ -38,6 +38,8 @@ public:
     ~MyTankAlgorithm() override = default;
     ActionRequest getAction() override;
     void updateBattleInfo(BattleInfo& info) override;
+    int getTankId() const{return tank_index;}
+    int getOwnerId() const{return player_index;}
     // private:
 //
 //     ActionRequest decideNextAction();

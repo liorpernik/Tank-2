@@ -29,7 +29,7 @@ void GameManager::readBoard(const string& filePath) {
 
 	setupOutputFile(filePath);
 }
-//SatelliteView* getSatelliteView() {}
+
 void GameManager::validateTankCounts() {
 	if (player_tank_count[1] == 0 && player_tank_count[2] == 0) {
 		logs.push_back("Tie, both players have zero tanks");
@@ -188,6 +188,7 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 		int tank_index = player_tank_count[player_id]++;
 		pair pos = {static_cast<int>(row), static_cast<int>(col) };
 		player_tanks_algo[player_id].push_back(dynamic_cast<MyTankAlgorithmFactory*>(tank_factory.get())->create(player_id, tank_index));
+		// player_tanks_algo[player_id].push_back(dynamic_cast<MyTankAlgorithmFactory*>(tank_factory.get())->create(player_id, tank_index));
 		player_tanks_pos[player_id].push_back(pos);
 		player_shell_count[player_id] += num_shells; //???
 		return make_unique<Tank>(pos, tank_index , player_id == 1 ? Direction::L : Direction::R,player_id, num_shells);
@@ -197,6 +198,8 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 	}
 	return nullptr;
 }
+
+
 
 // void GameManager::initializePlayers() {
 // 	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
@@ -242,42 +245,84 @@ int GameManager::count_alive_tanks(int player_id) const {
 	return static_cast<int>(player_tanks_pos.at(player_id).size());
 }
 
-bool GameManager::isGameOver() const {
-	int p1_tanks = count_alive_tanks(1);
-	int p2_tanks = count_alive_tanks(2);
-
-	return p1_tanks == 0 ||   // Player 1 eliminated
-		   p2_tanks == 0 ||   // Player 2 eliminated
-		   current_step >= max_steps|| // Timeout
-		   	steps_since_no_shells==40;
-}
-// Output Functions
-string GameManager::actionToString(ActionRequest action) {
-    switch (action) {
-        case ActionRequest::MoveForward: return "MoveForward";
-        case ActionRequest::MoveBackward: return "MoveBackward";
-        case ActionRequest::RotateLeft90: return "RotateLeft90";
-        case ActionRequest::RotateRight90: return "RotateRight90";
-        case ActionRequest::RotateLeft45: return "RotateLeft45";
-        case ActionRequest::RotateRight45: return "RotateRight45";
-        case ActionRequest::Shoot: return "Shoot";
-        case ActionRequest::GetBattleInfo: return "GetBattleInfo";
-        case ActionRequest::DoNothing: return "DoNothing";
-        default: return "Unknown";
-    }
-}
-
 void GameManager::processRound() {
-	//board.shellMove, collision
-	//for getactions
-	//for - valid->apply->update
+	board->moveFiredShells();
+
+	if(isGameOver()) {
+		return;
+	}
+	vector<Tank*> tanks=board->getSortedTanks();
+	vector<string> roundActions;
+	map<Tank*,ActionRequest> actionRequests;
+
+	// get all actions
+	for (size_t i = 0; i < tanks.size(); i++) {
+
+		auto& tank = tanks[i];
+
+		// Get action from algorithm
+		TankAlgorithm* tankPtr = findTankAlgorithmById(tank);
+		ActionRequest action = tankPtr->getAction();
+		actionRequests[tank] = action;
+		if (board->isValidMove(tank, action)){
+			tank->setActionSuccess(true);
+		}
+		else {
+			tank->setActionSuccess(false);
+		}
+		tank->setLastAction(action);
+	}
+	board->applyMoves(actionRequests);
+	updateTanksInfo(tanks);
+	generateRoundOutput(actionRequests);
 }
 
-string GameManager::generateRoundOutput() {
+void GameManager::updateTanksInfo(vector<Tank*> tanks) {
+	int index;
+	TankAlgorithm* tankPtr;
+	for (Tank* tank :tanks) {
+		tankPtr= findTankAlgorithmById(tank);
+		index=getTankIndex(tankPtr);
+		player_tanks_pos[tank->getOwnerId()][index]=tank->getPos();  // {-1,-1} if killed
+		if (tank->isDestroyed())
+			player_tank_count[tank->getOwnerId()]--;
+		if (tank->getLastAction()==ActionRequest::Shoot)
+			player_shell_count[tank->getOwnerId()]--;
+		if (tank->getLastAction()==ActionRequest::GetBattleInfo)
+			players[tank->getOwnerId()]->updateTankWithBattleInfo(*tankPtr,*board_view);
+	}
+}
+int GameManager::getTankIndex(TankAlgorithm* t) {
+	MyTankAlgorithm* tank=dynamic_cast<MyTankAlgorithm*>(t);
+	const auto& vec=player_tanks_algo[tank->getOwnerId()];
+	for (size_t i = 0; i <vec.size(); ++i) {
+		if (dynamic_cast<MyTankAlgorithm*>(vec[i].get())->getTankId() == tank->getTankId()) {
+			return static_cast<int>(i);
+		}
+	}
+	return -1; // Not found
+}
+
+TankAlgorithm* GameManager::findTankAlgorithmById(Tank* tankData) {
+	auto it = player_tanks_algo.find(tankData->getOwnerId());
+	if (it != player_tanks_algo.end()) {
+		const auto& tankVec = it->second;
+		for (const auto& tankPtr : tankVec) {
+			int id = dynamic_cast<MyTankAlgorithm*>(tankPtr.get())->getTankId();
+			if (id == tankData->getId()) {
+				return tankPtr.get();
+			}
+		}
+	}
+	return nullptr;
+}
+
+
+string GameManager::generateRoundOutput(map<Tank*,ActionRequest> tankActions) {
 	vector<string> actions;
-	vector<Tank*> tanks=board->getSortedTanks();
-	for (const auto& tank : tanks) {
-		string move=actionToString(tank->getLastAction());
+	//vector<Tank*> tanks=board->getSortedTanks();
+	for (const auto& [tank,acts] : tankActions) {
+		string move=actionToString(acts);
 		if (tank->isDestroyed()) {
 			actions.push_back(tank->isKilledThisRound() ? tank->getActionSuccess()? move + " (ignored) (killed)": " (killed)" : "killed");
 			continue;
@@ -313,11 +358,36 @@ void GameManager::logGameResult() {
 	}
 }
 
+string GameManager::actionToString(ActionRequest action) {
+	switch (action) {
+		case ActionRequest::MoveForward: return "MoveForward";
+		case ActionRequest::MoveBackward: return "MoveBackward";
+		case ActionRequest::RotateLeft90: return "RotateLeft90";
+		case ActionRequest::RotateRight90: return "RotateRight90";
+		case ActionRequest::RotateLeft45: return "RotateLeft45";
+		case ActionRequest::RotateRight45: return "RotateRight45";
+		case ActionRequest::Shoot: return "Shoot";
+		case ActionRequest::GetBattleInfo: return "GetBattleInfo";
+		case ActionRequest::DoNothing: return "DoNothing";
+		default: return "Unknown";
+	}
+}
+
 void GameManager::writeOutput() {
 	ofstream out(output_file);
 	for (const auto& line : logs) {
 		out << line << "\n";
 	}
+}
+
+bool GameManager::isGameOver() const {
+	int p1_tanks = count_alive_tanks(1);
+	int p2_tanks = count_alive_tanks(2);
+
+	return p1_tanks == 0 ||   // Player 1 eliminated
+		   p2_tanks == 0 ||   // Player 2 eliminated
+		   current_step >= max_steps|| // Timeout
+			   steps_since_no_shells==40;
 }
 
 GameManager::~GameManager()

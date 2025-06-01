@@ -18,6 +18,30 @@ int Tank::getOwnerId() const {
     return ownerId;
 }
 
+void Tank::rotate(ActionRequest action) {
+
+    switch(action) {
+        case ActionRequest::RotateLeft45:
+            direction = static_cast<Direction>((direction + 7) % 8); // move 1 counter-clockwise
+        break;
+        case ActionRequest::RotateRight45:
+            direction = static_cast<Direction>((direction + 1) % 8); // move 1 clockwise
+        break;
+        case ActionRequest::RotateLeft90:
+            direction = static_cast<Direction>((direction + 6) % 8); // move 2 clockwise
+        break;
+        case ActionRequest::RotateRight90:
+            direction = static_cast<Direction>((direction + 2) % 8); // move 2 counter-clockwise
+        break;
+        case ActionRequest::MoveForward:
+            case ActionRequest::MoveBackward:
+        case ActionRequest::Shoot:
+        case ActionRequest::DoNothing:
+        case ActionRequest::GetBattleInfo:
+            break;
+    }
+}
+
 void Tank::destroy() {
     destroyed=true;
 }

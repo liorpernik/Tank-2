@@ -59,10 +59,7 @@ private:
     unique_ptr<PlayerFactory> player_factory;
     unique_ptr<TankAlgorithmFactory> tank_factory;
 
-    //todo - Implement:
     void processRound();
-    void applyAction();
-    void updateTankWithBattleInfo();
 
     // Helper functions for readBoard
     void parseMetadata(ifstream& file, bool& hasErrors, ofstream& errorLog);
@@ -81,13 +78,15 @@ private:
 
     // Helper methods
     int count_alive_tanks(int player_id) const;
-    vector<unique_ptr<Tank>> sortTanksByBoardPosition();
     bool isGameOver() const;
 
+    TankAlgorithm* findTankAlgorithmById(Tank*);  // find tankalgo from tank obj
+    int getTankIndex(TankAlgorithm*); // find place of tankalgo in the vec of player_tank_algo to update locations in players_tanks_pos
+    void updateTanksInfo(vector<Tank*>); // done after board.applyMoves
 
     // Log Functions
     string actionToString(ActionRequest action);
-    string generateRoundOutput();
+    string generateRoundOutput(map<Tank*,ActionRequest>);
     string joinActions(const vector<string>& actions) ;
     void writeOutput();
     void logGameResult();

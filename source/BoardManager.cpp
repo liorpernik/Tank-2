@@ -46,26 +46,24 @@ void BoardManager::writeBoardStates(string fileName)
 	boardStates.clear(); // Clear logs after writing
 }
 
-void BoardManager::updateMap(pair<int, int> curr_pos,pair<int,int> new_pos) {
-	vector<unique_ptr<GameObject>>& curr_cell=game_map[curr_pos.first][curr_pos.second];
-	if (new_pos.first==-1 && new_pos.second==-1) { // GameObject destroyed
-		if (curr_cell[0]->getSymbol()!='T') // if == > Tank Destroyed, keeping instance for logging
-			curr_cell[0].reset();
-	}
-	else {
-		vector<unique_ptr<GameObject>>& new_cell=game_map[new_pos.first][new_pos.second];
-		if (curr_cell.size()>1) // passing shell in a cell with mine\wall\destroyed tank
-			new_cell.push_back(move(curr_cell[1]));
-		else
-			new_cell.push_back(move(curr_cell[0]));
-	}
+void BoardManager::updateMap(unique_ptr<GameObject> obj, pair<int,int> new_pos) {
+    if (!obj) return;
+
+    if (new_pos.first == -1 && new_pos.second == -1) {
+        // deletion handled in cleanupDestroyedObjects
+        return;
+    }
+
+    obj->setPos(new_pos);
+    game_map[new_pos.first][new_pos.second].push_back(std::move(obj));
 }
+
 vector<Tank*> BoardManager::getSortedTanks() {
 	vector<Tank*> tanks;
 	for (auto& rowVec : game_map) {
 		for (auto& cellVec : rowVec) {
 			for (auto& obj : cellVec) {
-				if (obj->getSymbol() == 'T') {
+				if (obj && obj->getSymbol() == 'T') {
 					tanks.push_back(dynamic_cast<Tank*>(obj.get()));
 				}
 			}
@@ -73,10 +71,9 @@ vector<Tank*> BoardManager::getSortedTanks() {
 	}
 	return tanks;
 }
-void BoardManager::moveFiredShells() {
-    map<pair<int, int>, vector<GameObject*>> collisionGroups;
 
-    // First pass: Move all shells and group objects by position
+void BoardManager::moveFiredShells() {
+
     for (size_t i = 0; i < fired_shells.size(); ) {
         auto& shell = fired_shells[i];
         bool shellDestroyed = false;
@@ -85,32 +82,73 @@ void BoardManager::moveFiredShells() {
             pair<int, int> oldPos = shell->getPos();
             pair<int, int> newPos = calculateNewPosition(oldPos, shell->getDirection());
 
-            // Check for collisions at new position
-            auto& cell = game_map[newPos.first][newPos.second];
-            if (!cell.empty()) {
-                collisionGroups[newPos].push_back(shell.get());
-                for (auto& obj : cell) {
-                    collisionGroups[newPos].push_back(obj.get());
-                }
-                shellDestroyed = true;
-            }
+            // Find the shell's unique_ptr in game_map
+            unique_ptr<GameObject> shellPtr = extractObjectFromMap(shell.get());
 
-            if (!shellDestroyed) {
-                shell->setPos(newPos);
-            }
-        }
-
-        if (shellDestroyed) {
-            fired_shells.erase(fired_shells.begin() + i);
-        } else {
-            i++;
+            // Move to new position using updateMap
+            updateMap(std::move(shellPtr), newPos);
+            shell->setPos(newPos);
+            handleAllCollisions();
         }
     }
+}
 
-    // Second pass: Process all collisions
-    for (auto& [position, objects] : collisionGroups) {
-        processCollision(objects);
-        cleanupDestroyedObjects(position);
+template<typename T>
+unique_ptr<GameObject> BoardManager::extractObjectFromMap(T* object) {
+    if (!object) return nullptr;
+
+    pair<int, int> pos = object->getPos();
+    if (pos.first < 0 || pos.first >= height || pos.second < 0 || pos.second >= width) {
+        return nullptr;
+    }
+
+    auto& cell = game_map[pos.first][pos.second];
+    for (auto it = cell.begin(); it != cell.end(); ++it) {
+        if (it->get() == object) { // move ownership and remove from map, later gets back to map in updateMap
+            unique_ptr<GameObject> objPtr = std::move(*it);
+            cell.erase(it);
+            return objPtr;
+        }
+    }
+    return nullptr;
+}
+
+void BoardManager::handleAllCollisions() {
+    // Find all cells with multiple objects
+    for (int x = 0; x < height; x++) {
+        for (int y = 0; y < width; y++) {
+            auto& cell = game_map[x][y];
+            if (cell.size() > 1) {
+                // Check for special case: exactly 2 objects where one is shell and other is wall/mine
+                if (cell.size() == 2) {
+                    bool hasShell = false;
+                    bool hasWallOrMine = false;
+
+                    for (auto& obj : cell) {
+                        if (dynamic_cast<Shell*>(obj.get())) {
+                            hasShell = true;
+                        }
+                        else if (dynamic_cast<Wall*>(obj.get()) || dynamic_cast<Mine*>(obj.get())) {
+                            hasWallOrMine = true;
+                        }
+                    }
+
+                    // Skip collision processing for this case
+                    if (hasShell && hasWallOrMine) {
+                        continue;
+                    }
+                }
+
+                // Normal collision processing for other cases
+                vector<GameObject*> objects;
+                for (auto& obj : cell) {
+                    objects.push_back(obj.get());
+                }
+
+                processCollision(objects, {x, y});
+                cleanupDestroyedObjects({x, y});
+            }
+        }
     }
 }
 
@@ -121,7 +159,7 @@ pair<int, int> BoardManager::calculateNewPosition(pair<int, int> pos, Direction 
     return pos;
 }
 
-void BoardManager::processCollision(vector<GameObject*>& objects) {
+void BoardManager::processCollision(vector<GameObject*>& objects,pair<int,int> position) {
     bool containsMine = false;
     bool containsTank = false;
     bool containsShell = false;
@@ -190,6 +228,7 @@ void BoardManager::processCollision(vector<GameObject*>& objects) {
             }
         }
     }
+    cleanupDestroyedObjects(position);
 }
 
 vector<vector<char>> BoardManager::objMapToCharMap() {
@@ -212,4 +251,102 @@ vector<vector<char>> BoardManager::objMapToCharMap() {
 void BoardManager::cleanupDestroyedObjects(pair<int,int> pos) {
     auto& cell = game_map[pos.first][pos.second];
     cell.erase(remove_if(cell.begin(), cell.end(),[](const unique_ptr<GameObject>& obj) {return obj->isDestroyed();}),cell.end()); // releases ptr automaticly when erasing.
+}
+
+bool BoardManager::isValidMove(Tank* tank, ActionRequest action) {
+    Direction dir=tank->getDirection();
+    if (!tank || tank->isDestroyed()) {
+        return false;
+    }
+    if (tank->isWaitingToBackward() && action!=ActionRequest::MoveForward) // only fwd move can cancel while waiting for the back move
+            return false;
+
+    if (action == ActionRequest::Shoot && tank->isWaitingToShoot()) {
+        return false;
+    }
+
+    // For movement actions, check the target position
+    if (action == ActionRequest::MoveForward || action == ActionRequest::MoveBackward) {
+        if (action == ActionRequest::MoveBackward){
+            dir=static_cast<Direction>((static_cast<int>(tank->getDirection()) + 4) % 8);
+        }
+        auto [newX, newY] = calculateNewPosition(tank->getPos(),dir);
+
+        // Check if the new position is occupied
+        GameObject* obj = game_map[newY][newX][0].get();
+        if (obj && !obj->isDestroyed()&& obj->getSymbol()=='#') { //not valid only if it's a wall
+            return false;  // Position is blocked
+        }
+    }
+    return true; // all other actions are allways valid
+}
+
+void BoardManager::applyMoves(map<Tank*, ActionRequest> moves) {
+    for (auto& [tank, action] : moves) {
+        if (!tank || tank->isDestroyed()) continue;
+
+        pair<int, int> newPos = {-1, -1};
+        if (tank->isWaitingToBackward()&&tank->getBackwardCooldown()==0)
+            action=ActionRequest::MoveBackward; // back after 3 rounds, no matter what the other action now is, it is ignored?
+        switch (action) {
+            case ActionRequest::MoveForward:
+                if (tank->isWaitingToBackward()) {
+                    tank->setBackwardCooldown(0);
+                    tank->setWaitingForBackward(false);
+                    // Tank stays in place
+                } else {
+                    newPos = calculateNewPosition(tank->getPos(), tank->getDirection());
+                    unique_ptr<GameObject> tankPtr = extractObjectFromMap(tank);
+                    tank->setPos(newPos);
+
+                    updateMap(move(tankPtr), newPos);
+                }
+            break;
+
+            case ActionRequest::MoveBackward:
+                if (tank->isBackLastMove()||(tank->isWaitingToBackward()&&tank->getBackwardCooldown()==0)){// Instant backward move
+                    newPos = calculateNewPosition(tank->getPos(), static_cast<Direction>((static_cast<int>(tank->getDirection()) + 4) % 8));
+                    tank->setWaitingForBackward(false);
+                    unique_ptr<GameObject> tankPtr = extractObjectFromMap(tank);
+                    tank->setPos(newPos);
+
+                    updateMap(move(tankPtr), newPos);
+                }
+                else if (!tank->isWaitingToBackward()) {
+                    // Start backward cooldown (waiting for 2 steps)
+                    tank->setBackwardCooldown(2);
+                    tank->setWaitingForBackward(true);
+                }
+            break;
+
+            case ActionRequest::Shoot:
+                if (!tank->isWaitingToShoot() && tank->getNumOfRemainingShells() > 0) {
+                    tank->setNumOfShells(tank->getNumOfRemainingShells() - 1);
+                    tank->setShootCooldown(4);
+                    fired_shells.push_back(make_unique<Shell>(tank->getPos(), tank->getDirection(),tank->getOwnerId()));
+                }
+            break;
+
+            case ActionRequest::RotateLeft45:
+            case ActionRequest::RotateRight45:
+            case ActionRequest::RotateLeft90:
+            case ActionRequest::RotateRight90:
+            tank->rotate(action);
+            break;
+
+            case ActionRequest::DoNothing:
+            case ActionRequest::GetBattleInfo: //handled in GameMmanager
+                break;
+        }
+        tank->setLastAction(action);
+
+        // Handle cooldowns
+        if (action != ActionRequest::Shoot && tank->isWaitingToShoot()) {
+            tank->setShootCooldown(tank->getShootCooldown() - 1);
+        }
+        if (action!=ActionRequest::MoveBackward&& tank->isWaitingToBackward())
+            tank->setBackwardCooldown(tank->getBackwardCooldown() - 1);
+    }
+
+    handleAllCollisions();
 }

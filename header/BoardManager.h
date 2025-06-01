@@ -27,23 +27,32 @@ class BoardManager  {
   public:
     BoardManager(const BoardManager&) = delete;
     BoardManager(vector<vector<vector<unique_ptr<GameObject>>>> map, int rows, int cols);
-    // BoardManager(string filePath);
     ~BoardManager() = default;
     GameObject* getObjectAt(int x, int y) const;
-  vector<vector<char>> objMapToCharMap();
+    vector<vector<char>> objMapToCharMap();
     void updateBoard(size_t x, size_t y, char value);
 
     void printBoard();
     void writeBoardStates(string);
     //int wrap(int value, int size) const { return (value % size + size) % size; }
 
-    void updateMap(pair<int, int> curr_pos,pair<int,int> new_pos);
+
+  void updateMap(unique_ptr<GameObject> obj,pair<int,int> new_pos);
+
     vector<Tank*> getSortedTanks();
 
     void moveFiredShells();
+    bool isValidMove(Tank*, ActionRequest);
+    void applyMoves(map<Tank*, ActionRequest>);
+
     pair<int, int> calculateNewPosition(pair<int, int> pos, Direction dir) const;// replaces wrap and returns new pos
-    void processCollision(vector<GameObject*>& objects);
-    void cleanupDestroyedObjects(pair<int,int>);
+
+
+  void processCollision(vector<GameObject*>& objects,pair<int,int> position);
+  void cleanupDestroyedObjects(pair<int,int>);
+  void handleAllCollisions();
+  template<typename T>
+    unique_ptr<GameObject> extractObjectFromMap(T* object);
 
 };
 #endif //BOARDMANAGER_H
