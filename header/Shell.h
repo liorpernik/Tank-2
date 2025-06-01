@@ -1,10 +1,7 @@
-//
-// Created by admin on 5/16/2025.
-//
-
 #ifndef SHELL_H
 #define SHELL_H
 #include "../common/GameObject.h"
+using std::pair;
 
 class Shell : public GameObject {
     Direction direction;
@@ -13,7 +10,7 @@ class Shell : public GameObject {
     static const char SHELL_SYMBOL = '*';
 public:
     // Constructor
-    Shell(std::pair<int,int> pos, Direction dir, int owner);
+    Shell(pair<int,int> pos, Direction dir, int owner);
     ~Shell() override= default;
 
     Shell(Shell const&) = delete;

@@ -1,11 +1,7 @@
-//
-// Created by admin on 5/16/2025.
-//
-
 #ifndef MINE_H
 #define MINE_H
-
 #include "../common/GameObject.h"
+using std::pair;
 
 class Mine : public GameObject {
 private:
@@ -14,7 +10,7 @@ private:
     static const char MINE_SYMBOL = '@'; // Assuming this is the intended symbol
 
 public:
-    Mine(std::pair<int,int> pos);
+    Mine(pair<int,int> pos);
     ~Mine() override= default;
 
     Mine(Mine const&) = delete;
