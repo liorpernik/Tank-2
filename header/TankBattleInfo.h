@@ -7,7 +7,7 @@
 #include <memory>
 #include <map>
 
-using std::map,std::vector,std::pair;
+using std::map,std::vector,std::pair, std::unique_ptr;
 struct OppData{
     pair<int,int> opponentPos;
     Direction opponentDir = None;
@@ -28,13 +28,13 @@ class TankBattleInfo : public BattleInfo {
     map<pair<int,int>, vector<GameObject*>> knownObjects;
 
     bool set_shells = false;
+    pair<int,int> map_size = {-1,-1};
 public:
 
     TankBattleInfo(int tank_index, int player_id);
     ~TankBattleInfo() override = default;
 
-    void decreaseBackwardCooldown();
-    void increaseBackwardCooldown(int cooldown = 2);
+    void setBackwardCooldown(int cooldown = 2);
 
     void setWaitingForBackward(bool);
     bool getWaitingForBackward();
@@ -42,8 +42,7 @@ public:
     void setMovedBackwardLast(bool);
     bool getMovedBackwardLast();
 
-    void decreaseShootCooldown();
-    void increaseShootCooldown(int cooldown = 4);
+    void setShootCooldown(int cooldown = 4);
 
     bool isWaitingToReverse() const;
     bool isWaitingToShoot() const;
@@ -61,12 +60,15 @@ public:
 
     vector<OppData> getOpponents() const;
     // OppData* getOpponentById(int id) const;
-    void setOpponents(std::vector<OppData> opps);
-    void addOpponent(std::pair<int,int> position, Direction dir = None);
+    void setOpponents(vector<OppData> opps);
+    void addOpponent(pair<int,int> position, Direction dir = None);
 
-    GameObject* getObjectByPosition(std::pair<int,int> pos) const;
+    GameObject* getObjectByPosition(pair<int,int> pos) const;
 
     map<pair<int, int>, vector<GameObject*> > getKnownObjects() const;
     void setKnownObjects(map<pair<int, int>, vector<GameObject*> > knownObjects);
+
+    void setMapSize(int h, int w);
+    pair<int, int> getMapSize() const;
 };
 #endif //TANKBATTLEINFO_H

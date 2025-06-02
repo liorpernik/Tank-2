@@ -4,10 +4,13 @@
 
 #include "../header/TankBattleInfo.h"
 
-TankBattleInfo::TankBattleInfo(int tank_index, int player_index) : id(tank_index), player_id(player_index) {}
+TankBattleInfo::TankBattleInfo(int tank_index, int player_index) : id(tank_index), player_id(player_index)
+{
+    direction = player_id == 1 ? L : R;
+}
 
-void TankBattleInfo::decreaseBackwardCooldown(){ --backward_cooldown; }
-void TankBattleInfo::increaseBackwardCooldown(int cooldown){ backward_cooldown += cooldown; }
+
+void TankBattleInfo::setBackwardCooldown(int cooldown){ backward_cooldown = cooldown; }
 
 void TankBattleInfo::setWaitingForBackward(bool is_waiting){ is_waiting_for_backward = is_waiting; }
 bool TankBattleInfo::getWaitingForBackward(){ return is_waiting_for_backward; }
@@ -15,8 +18,8 @@ bool TankBattleInfo::getWaitingForBackward(){ return is_waiting_for_backward; }
 void TankBattleInfo::setMovedBackwardLast(bool moved){ moved_backward_last = moved; }
 bool TankBattleInfo::getMovedBackwardLast(){ return moved_backward_last; }
 
-void TankBattleInfo::decreaseShootCooldown(){ --shoot_cooldown; }
-void TankBattleInfo::increaseShootCooldown(int cooldown){ shoot_cooldown += cooldown; }
+
+void TankBattleInfo::setShootCooldown(int cooldown){ shoot_cooldown = cooldown; }
 bool TankBattleInfo::isWaitingToShoot() const { return shoot_cooldown > 0; }
 
 bool TankBattleInfo::isWaitingToReverse() const { return is_waiting_for_backward && backward_cooldown > 0; }
@@ -56,4 +59,15 @@ std::map<std::pair<int, int>, std::vector<GameObject*>> TankBattleInfo::getKnown
 void TankBattleInfo::setKnownObjects(std::map<std::pair<int, int>, std::vector<GameObject*>> newKnownObjects)
 {
     knownObjects = std::move(newKnownObjects);
+}
+
+
+void TankBattleInfo::setMapSize(int h, int w)
+{
+    map_size = std::make_pair(h,w);
+}
+
+pair<int, int> TankBattleInfo::getMapSize() const
+{
+    return map_size;
 }

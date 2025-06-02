@@ -10,12 +10,12 @@ class Tank : public GameObject {
     int tank_index;
     Direction direction;
     int ownerId;
-    bool destroyed;
+    bool destroyed = false;
     bool killed_this_round=false;
     int remaining_shells = 0;
     int shoot_cooldown = 0;
     int backward_cooldown = 0;
-    bool waiting_for_backward;
+    bool waiting_for_backward = false;
     ActionRequest last_action;
     bool last_action_success;
 

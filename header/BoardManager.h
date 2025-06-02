@@ -48,8 +48,9 @@ class BoardManager  {
     pair<int, int> calculateNewPosition(pair<int, int> pos, Direction dir) const;// replaces wrap and returns new pos
 
 
-  void processCollision(vector<GameObject*>& objects,pair<int,int> position);
+  void processCollision(vector<GameObject*>& objects);
   void cleanupDestroyedObjects(pair<int,int>);
+  void boardCleanup();
   void handleAllCollisions();
   template<typename T>
     unique_ptr<GameObject> extractObjectFromMap(T* object);

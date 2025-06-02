@@ -35,7 +35,8 @@ protected:
     Direction calculateDirection(int currRow, int currCol, int targetRow, int targetCol);
     OppData getClosestOpponent();
     int calculateActionsToOpponent(const OppData& oppPos);
-
+    void updateInnerInfoAfterAction(ActionRequest action);
+    int wrap(int value, int size) { return size != -1 ? (value % size + size) % size : value; }; // wrap-around edges
 public:
     MyTankAlgorithm(int player_index, int tank_index);
     ~MyTankAlgorithm() override = default;
@@ -43,6 +44,7 @@ public:
     void updateBattleInfo(BattleInfo& info) override;
     int getTankId() const{return tank_index;}
     int getOwnerId() const{return player_index;}
+
     // private:
 //
 //     ActionRequest decideNextAction();

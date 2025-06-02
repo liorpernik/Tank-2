@@ -55,7 +55,8 @@ void BoardManager::updateMap(unique_ptr<GameObject> obj, pair<int,int> new_pos) 
     }
 
     obj->setPos(new_pos);
-    game_map[new_pos.first][new_pos.second].push_back(std::move(obj));
+    if (!game_map[new_pos.first][new_pos.second].empty() && game_map[new_pos.first][new_pos.second][0] == nullptr) game_map[new_pos.first][new_pos.second][0] = std::move(obj);
+    else game_map[new_pos.first][new_pos.second].push_back(std::move(obj));
 }
 
 vector<Tank*> BoardManager::getSortedTanks() {
@@ -63,7 +64,7 @@ vector<Tank*> BoardManager::getSortedTanks() {
 	for (auto& rowVec : game_map) {
 		for (auto& cellVec : rowVec) {
 			for (auto& obj : cellVec) {
-				if (obj && obj->getSymbol() == 'T') {
+				if (obj && (obj->getSymbol() == '1' || obj->getSymbol() == '2')) {
 					tanks.push_back(dynamic_cast<Tank*>(obj.get()));
 				}
 			}
@@ -74,7 +75,7 @@ vector<Tank*> BoardManager::getSortedTanks() {
 
 void BoardManager::moveFiredShells() {
 
-    for (size_t i = 0; i < fired_shells.size(); ) {
+    for (size_t i = 0; i < fired_shells.size(); i++) {
         auto& shell = fired_shells[i];
         bool shellDestroyed = false;
 
@@ -145,8 +146,7 @@ void BoardManager::handleAllCollisions() {
                     objects.push_back(obj.get());
                 }
 
-                processCollision(objects, {x, y});
-                cleanupDestroyedObjects({x, y});
+                processCollision(objects);
             }
         }
     }
@@ -159,7 +159,7 @@ pair<int, int> BoardManager::calculateNewPosition(pair<int, int> pos, Direction 
     return pos;
 }
 
-void BoardManager::processCollision(vector<GameObject*>& objects,pair<int,int> position) {
+void BoardManager::processCollision(vector<GameObject*>& objects) {
     bool containsMine = false;
     bool containsTank = false;
     bool containsShell = false;
@@ -228,14 +228,13 @@ void BoardManager::processCollision(vector<GameObject*>& objects,pair<int,int> p
             }
         }
     }
-    cleanupDestroyedObjects(position);
 }
 
 vector<vector<char>> BoardManager::objMapToCharMap() {
     vector<vector<char>> charMap;
     for (int x = 0; x < height; x++) {
+        charMap.push_back(vector<char>());
         for (int y = 0; y < width; y++) {
-            charMap.push_back(vector<char>());
             if (game_map[x][y].size()>0){
                 auto obj=game_map[x][y].size() > 1 ? game_map[x][y][1].get() : game_map[x][y][0].get();
                 charMap[x].push_back(obj ? obj->getSymbol(): ' ');
@@ -248,9 +247,20 @@ vector<vector<char>> BoardManager::objMapToCharMap() {
     return charMap;
 }
 
+void BoardManager::boardCleanup()
+{
+    for (int x = 0; x < height; x++)
+    {
+        for (int y = 0; y < width; y++)
+        {
+            cleanupDestroyedObjects({x,y});
+        }
+    }
+}
+
 void BoardManager::cleanupDestroyedObjects(pair<int,int> pos) {
     auto& cell = game_map[pos.first][pos.second];
-    cell.erase(remove_if(cell.begin(), cell.end(),[](const unique_ptr<GameObject>& obj) {return obj->isDestroyed();}),cell.end()); // releases ptr automaticly when erasing.
+    cell.erase(remove_if(cell.begin(), cell.end(),[](const unique_ptr<GameObject>& obj) {return obj && obj->isDestroyed();}),cell.end()); // releases ptr automaticly when erasing.
 }
 
 bool BoardManager::isValidMove(Tank* tank, ActionRequest action) {
@@ -273,8 +283,8 @@ bool BoardManager::isValidMove(Tank* tank, ActionRequest action) {
         auto [newX, newY] = calculateNewPosition(tank->getPos(),dir);
 
         // Check if the new position is occupied
-        GameObject* obj = game_map[newY][newX][0].get();
-        if (obj && !obj->isDestroyed()&& obj->getSymbol()=='#') { //not valid only if it's a wall
+        GameObject* obj = !game_map[newX][newY].empty() ? game_map[newX][newY][0].get() : nullptr;
+        if (obj && !obj->isDestroyed() && obj->getSymbol()=='#') { //not valid only if it's a wall
             return false;  // Position is blocked
         }
     }
@@ -323,7 +333,9 @@ void BoardManager::applyMoves(map<Tank*, ActionRequest> moves) {
                 if (!tank->isWaitingToShoot() && tank->getNumOfRemainingShells() > 0) {
                     tank->setNumOfShells(tank->getNumOfRemainingShells() - 1);
                     tank->setShootCooldown(4);
-                    fired_shells.push_back(make_unique<Shell>(tank->getPos(), tank->getDirection(),tank->getOwnerId()));
+                    pair shell_pos = calculateNewPosition(tank->getPos(), static_cast<Direction>((static_cast<int>(tank->getDirection()) + 4) % 8));
+                    fired_shells.push_back(make_unique<Shell>(shell_pos, tank->getDirection(),tank->getOwnerId()));
+                    updateMap(make_unique<Shell>(shell_pos, tank->getDirection(),tank->getOwnerId()),shell_pos);
                 }
             break;
 

@@ -4,8 +4,7 @@
 
 using std::pair;
 
-MyTankAlgorithm::MyTankAlgorithm(int player_index, int tank_index) : player_index(player_index), tank_index(tank_index) {
-    battle_info = make_unique<TankBattleInfo>(tank_index, player_index);
+MyTankAlgorithm::MyTankAlgorithm(int player_index, int tank_index) : player_index(player_index), tank_index(tank_index), battle_info(std::make_unique<TankBattleInfo>(tank_index,player_index)) {
 }
 
 void MyTankAlgorithm::updateBattleInfo(BattleInfo& info)
@@ -25,8 +24,11 @@ ActionRequest MyTankAlgorithm::getAction()
 
 std::pair<int,int> MyTankAlgorithm::nextStep(bool forward,const std::pair<int,int> pos, const Direction dir){
     int side = forward ? 1: -1;
-    int newRow = pos.first + offsets[dir].first*side;
-    int newCol = pos.second + offsets[dir].second*side;
+	auto [h,w] = battle_info->getMapSize();
+
+    int newRow = wrap(pos.first + offsets[dir].first*side,h);
+    int newCol = wrap(pos.second + offsets[dir].second*side,w);
+
     return {newRow , newCol };
 }
 
@@ -194,7 +196,7 @@ ActionRequest MyTankAlgorithm::checkForEscape() {
 bool MyTankAlgorithm::willBeHitIn(int row, int col, int t) {
 	auto knownObjects = battle_info->getKnownObjects();
 	for (auto& [pos, objects]: knownObjects) {
-		auto& object = objects.size() > 1 ? objects[1] :  objects[0];
+		auto object = objects.size() > 1 ? objects[1] :  objects[0];
 		char symbol = object->getSymbol();
 		if (symbol != '*') continue;
 
@@ -210,9 +212,10 @@ bool MyTankAlgorithm::willBeHitIn(int row, int col, int t) {
 			int pr = sr + dr * stepsAhead;
 			int pc = sc + dc * stepsAhead;
 
-			// // Wraparound edges
-			// pr = battle_info->wrap(pr, battle_info->getHeight());
-			// pc = battle_info->wrap(pc, battle_info->getWidth());
+			// Wraparound edges
+			auto [h,w] = battle_info->getMapSize();
+			pr = wrap(pr, h);
+			pc = wrap(pc, w);
 
 			if (pr == row && pc == col) {
 				return true;  // A shell will hit the cell by that time
@@ -248,7 +251,7 @@ ActionRequest MyTankAlgorithm::determineRotation(Direction currentDir, Direction
 	if (rotationSteps == 5) return ActionRequest::RotateLeft90;
 
 	// If no rotation required
-	return ActionRequest::DoNothing; // Arbitrary fallback
+	return ActionRequest::RotateRight45; // Arbitrary fallback
 }
 
 /**
@@ -290,7 +293,7 @@ OppData MyTankAlgorithm::getClosestOpponent()
 		++index;
 	}
 
-	return opponents[min_pos];
+	return min_pos != -1 ? opponents[min_pos] : OppData{{-1, -1}, Direction::None};;
 }
 
 
@@ -324,4 +327,56 @@ int MyTankAlgorithm::calculateActionsToOpponent(const OppData& opp) {
 
 	// Total actions = rotations + movements
 	return rotations + movements;
+}
+
+void MyTankAlgorithm::updateInnerInfoAfterAction(ActionRequest action)
+{
+	pair<int, int> newPos = {-1, -1};
+    if (battle_info->isWaitingToReverse()&&battle_info->getWaitingForBackward()==0)
+        action=ActionRequest::MoveBackward; // back after 3 rounds, no matter what the other action now is, it is ignored?
+    switch (action)
+    {
+    case ActionRequest::MoveForward:
+        if (battle_info->isWaitingToReverse()) {
+        	battle_info->setBackwardCooldown(0);
+        	battle_info->setWaitingForBackward(false);
+        	// Tank stays in place
+        } else {
+        	newPos = nextStep(true,battle_info->getPosition(), battle_info->getDirection());
+        	battle_info->setPosition(newPos.first, newPos.second);
+
+        }
+        break;
+
+    case ActionRequest::MoveBackward:
+        if (battle_info->getMovedBackwardLast()||(battle_info->isWaitingToReverse()&&battle_info->getWaitingForBackward()==0)){// Instant backward move
+        	newPos = nextStep(false,battle_info->getPosition(), battle_info->getDirection());
+        	battle_info->setWaitingForBackward(false);
+        	battle_info->setPosition(newPos.first, newPos.second);
+        }
+        else if (!battle_info->isWaitingToReverse()) {
+        	// Start backward cooldown (waiting for 2 steps)
+        	battle_info->setBackwardCooldown(2);
+        	battle_info->setWaitingForBackward(true);
+        }
+        break;
+
+    case ActionRequest::Shoot:
+        if (!battle_info->isWaitingToShoot() && battle_info->getRemainingShells() > 0) {
+        	battle_info->decreaseRemainingShells();
+        	battle_info->setShootCooldown(4);
+        }
+        break;
+
+    case ActionRequest::RotateLeft45:
+	case ActionRequest::RotateRight45:
+	case ActionRequest::RotateLeft90:
+	case ActionRequest::RotateRight90:
+		rotate(action);
+        break;
+
+    case ActionRequest::DoNothing:
+	case ActionRequest::GetBattleInfo: //handled in GameMmanager
+		break;
+    }
 }

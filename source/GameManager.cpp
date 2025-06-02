@@ -26,7 +26,7 @@ void GameManager::readBoard(const string& filePath) {
     }
 
     // Initialize players and output
-
+	initializePlayers();
 	setupOutputFile(filePath);
 }
 
@@ -201,12 +201,12 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 
 
 
-// void GameManager::initializePlayers() {
-// 	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
-// 	setPlayerTankAlgorithms(1);
-// 	players.push_back(player_factory->create(2, rows,cols,max_steps, num_shells));
-// 	setPlayerTankAlgorithms(2);
-// }
+void GameManager::initializePlayers() {
+	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
+	// setPlayerTankAlgorithms(1);
+	players.push_back(player_factory->create(2, rows,cols,max_steps, num_shells));
+	// setPlayerTankAlgorithms(2);
+}
 
 // void GameManager::setPlayerTankAlgorithms(int player_id)
 // {
@@ -242,7 +242,7 @@ void GameManager::run() {
 }
 
 int GameManager::count_alive_tanks(int player_id) const {
-	return static_cast<int>(player_tanks_pos.at(player_id).size());
+	return player_tank_count.at(player_id);
 }
 
 void GameManager::processRound() {
@@ -258,7 +258,7 @@ void GameManager::processRound() {
 	// get all actions
 	for (size_t i = 0; i < tanks.size(); i++) {
 
-		auto& tank = tanks[i];
+		auto tank = tanks[i];
 
 		// Get action from algorithm
 		TankAlgorithm* tankPtr = findTankAlgorithmById(tank);
@@ -274,7 +274,8 @@ void GameManager::processRound() {
 	}
 	board->applyMoves(actionRequests);
 	updateTanksInfo(tanks);
-	generateRoundOutput(actionRequests);
+	logs.push_back(generateRoundOutput(actionRequests));
+	board->boardCleanup();
 }
 
 void GameManager::updateTanksInfo(vector<Tank*> tanks) {
@@ -285,11 +286,13 @@ void GameManager::updateTanksInfo(vector<Tank*> tanks) {
 		index=getTankIndex(tankPtr);
 		player_tanks_pos[tank->getOwnerId()][index]=tank->getPos();  // {-1,-1} if killed
 		if (tank->isDestroyed())
-			player_tank_count[tank->getOwnerId()]--;
+			--player_tank_count[tank->getOwnerId()];
 		if (tank->getLastAction()==ActionRequest::Shoot)
-			player_shell_count[tank->getOwnerId()]--;
-		if (tank->getLastAction()==ActionRequest::GetBattleInfo)
-			players[tank->getOwnerId()]->updateTankWithBattleInfo(*tankPtr,*board_view);
+			--player_shell_count[tank->getOwnerId()];
+		if (tank->getLastAction()==ActionRequest::GetBattleInfo){
+			dynamic_cast<BoardSatelliteView*>(board_view.get())->setRequsingTankPos(tank->getPos());
+			players.at(tank->getOwnerId()-1)->updateTankWithBattleInfo(*tankPtr,*board_view);
+		}
 	}
 }
 int GameManager::getTankIndex(TankAlgorithm* t) {

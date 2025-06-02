@@ -9,6 +9,12 @@ BTankAlgorithm::BTankAlgorithm(int player_index, int tank_index) : MyTankAlgorit
 
 }
 
+ActionRequest BTankAlgorithm::getAction()
+{
+	ActionRequest action = decideAction();
+	updateInnerInfoAfterAction(action);
+	return action;
+}
 
 /**
  * @brief Determines the next move for the tank based on the opponent.
@@ -16,10 +22,12 @@ BTankAlgorithm::BTankAlgorithm(int player_index, int tank_index) : MyTankAlgorit
  * @param opp The opponent's data.
  * @return The next decided Action.
  */
-ActionRequest BTankAlgorithm::getAction() {
+ActionRequest BTankAlgorithm::decideAction() {
 	auto [currentRow, currentCol] = battle_info->getPosition();
 
 	OppData opp = getClosestOpponent();
+	if (opp.opponentPos == make_pair(-1,-1)) return ActionRequest::GetBattleInfo;
+
 	auto [targetRow, targetCol] = opp.opponentPos;
 
 	Direction currentDir = battle_info->getDirection();
@@ -104,12 +112,13 @@ bool BTankAlgorithm::shouldShootOpponent(OppData& opp) {
 	// Basic opponent always moves forward when possible, else rotates right
 	Direction oppDir = opp.opponentDir;
 	auto [dr, dc] = offsets[static_cast<int>(oppDir)];
+	auto [h,w] = battle_info->getMapSize();
 
 	// Predict opponent's next 2 positions
 	vector<pair<int,int>> predictedPositions = {
 		{targetRow, targetCol},  // Current position
-		{targetRow + dr, targetCol + dc} // Next position
-		,{targetRow + dr*2, targetCol + dc*2} // Position after next
+		{wrap(targetRow + dr,h), wrap(targetCol + dc,w)} // Next position
+		,{wrap(targetRow + dr*2,h), wrap(targetCol + dc*2,w)} // Position after next
 	};
 
     // Check if we're aligned with any predicted position
@@ -223,7 +232,7 @@ int BTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
   }
 
 
-void BTankAlgorithm::updateBattleInfo(BattleInfo& battleInfo)
-{
-	battle_info->setDirection(dynamic_cast<TankBattleInfo*>(&battleInfo)->getDirection());
-}
+// void BTankAlgorithm::updateBattleInfo(BattleInfo& battleInfo)
+// {
+// 	battle_info->setDirection(dynamic_cast<TankBattleInfo*>(&battleInfo)->getDirection());
+// }

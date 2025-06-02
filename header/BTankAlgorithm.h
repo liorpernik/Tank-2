@@ -30,6 +30,7 @@ class BTankAlgorithm : public MyTankAlgorithm {
   bool canShootAfterRotate(Direction targetDir, OppData& opp);
   bool shouldShootOpponent(OppData& opp);
   Direction simulateRotation(ActionRequest act);
+  ActionRequest decideAction();
 
   public:
   BTankAlgorithm(int player_index, int tank_index);
@@ -38,7 +39,8 @@ class BTankAlgorithm : public MyTankAlgorithm {
   BTankAlgorithm(const BTankAlgorithm&) = delete;
   BTankAlgorithm& operator=(const BTankAlgorithm&) = delete;
 
-  void updateBattleInfo(BattleInfo& battleInfo) override;
+  // void updateBattleInfo(BattleInfo& battleInfo) override;
+
   ActionRequest getAction() override;
 };
 

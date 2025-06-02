@@ -34,8 +34,6 @@ public:
     Direction calcShellDirection();
 	void addTank(unique_ptr<TankAlgorithm>& tank);
 	int getPlayerIndex() const;
-	void setWidth(int width);
-	void setHeight(int height);
 
     void getBattleInfoFromSatelliteView(SatelliteView& view);
 };
