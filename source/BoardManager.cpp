@@ -84,13 +84,21 @@ void BoardManager::moveFiredShells() {
             pair<int, int> newPos = calculateNewPosition(oldPos, shell->getDirection());
 
             // Find the shell's unique_ptr in game_map
-            unique_ptr<GameObject> shellPtr = extractObjectFromMap(shell.get());
+            unique_ptr<GameObject> shellPtr;
+            if (game_map[oldPos.first][oldPos.second].size() > 1)
+            {
+                shellPtr = move(game_map[oldPos.first][oldPos.second][1]);
+                game_map[oldPos.first][oldPos.second].erase(game_map[oldPos.first][oldPos.second].begin() + 1);
+            }
+            else shellPtr = move(game_map[oldPos.first][oldPos.second][0]); //extractObjectFromMap(shell.get());
 
             // Move to new position using updateMap
             updateMap(std::move(shellPtr), newPos);
             shell->setPos(newPos);
             handleAllCollisions();
+            shellDestroyed = shell->isDestroyed();
         }
+        if (shellDestroyed) fired_shells.erase(fired_shells.begin() + i);
     }
 }
 
@@ -333,7 +341,7 @@ void BoardManager::applyMoves(map<Tank*, ActionRequest> moves) {
                 if (!tank->isWaitingToShoot() && tank->getNumOfRemainingShells() > 0) {
                     tank->setNumOfShells(tank->getNumOfRemainingShells() - 1);
                     tank->setShootCooldown(4);
-                    pair shell_pos = calculateNewPosition(tank->getPos(), static_cast<Direction>((static_cast<int>(tank->getDirection()) + 4) % 8));
+                    pair shell_pos = calculateNewPosition(tank->getPos(), tank->getDirection());
                     fired_shells.push_back(make_unique<Shell>(shell_pos, tank->getDirection(),tank->getOwnerId()));
                     updateMap(make_unique<Shell>(shell_pos, tank->getDirection(),tank->getOwnerId()),shell_pos);
                 }
