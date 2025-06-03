@@ -57,8 +57,8 @@ ActionRequest BTankAlgorithm::decideAction() {
 	}
 
     // Shoot if aligned and safe
-    if ((shouldShootOpponent(opp)) &&  !battle_info->isWaitingToShoot()) { //(currentDir == desiredDir
-        return ActionRequest::Shoot;
+    if (shouldShootOpponent(opp)) {
+        return !battle_info->isWaitingToShoot() ? ActionRequest::Shoot : ActionRequest::GetBattleInfo;
     }
     if (currentDir != desiredDir) {
          ActionRequest rotate= determineRotation(currentDir, desiredDir);

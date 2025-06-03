@@ -134,7 +134,7 @@ void BoardManager::handleAllCollisions() {
                     bool hasWallOrMine = false;
 
                     for (auto& obj : cell) {
-                        if (dynamic_cast<Shell*>(obj.get())) {
+                        if (dynamic_cast<Shell*>(obj.get())) { //todo: check if destroyed or fix cleanup
                             hasShell = true;
                         }
                         else if (dynamic_cast<Wall*>(obj.get()) || dynamic_cast<Mine*>(obj.get())) {

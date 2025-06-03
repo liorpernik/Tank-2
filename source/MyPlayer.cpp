@@ -26,6 +26,7 @@ void MyPlayer::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view
     tank.updateBattleInfo(*battle_info);
 }
 
+//todo: check after another get battle info that all was updated
 void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
 {
     int i=0,j=0;
