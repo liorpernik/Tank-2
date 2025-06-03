@@ -31,7 +31,7 @@ class BTankAlgorithm : public MyTankAlgorithm {
   bool shouldShootOpponent(OppData& opp);
   Direction simulateRotation(ActionRequest act);
   ActionRequest decideAction();
-
+  void moveKnownShells();
   public:
   BTankAlgorithm(int player_index, int tank_index);
   ~BTankAlgorithm() override = default;

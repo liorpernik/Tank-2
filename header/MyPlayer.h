@@ -9,14 +9,15 @@
 using std::unique_ptr, std::vector;
 
 class MyPlayer : public Player {
+
+protected:
     int player_index;
     size_t map_width = 0;
     size_t map_height = 0;
 	int steps_left;
 	int shells_per_tank;
     // TODO: class that implements BattleInfo, here, DataStructure to handle last 2 sequential battleinfos(to determine direction)
-	vector<int> last_battle_info_reqs;
-	vector<unique_ptr<TankAlgorithm>> tanks;
+	// vector<unique_ptr<TankAlgorithm>> tanks;
 	unique_ptr<BattleInfo> battle_info;
 
 public:
@@ -30,9 +31,7 @@ public:
 	MyPlayer& operator=(const MyPlayer&) = delete;
 
     void updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view) override;
-	void setRoles();
-    Direction calcShellDirection();
-	void addTank(unique_ptr<TankAlgorithm>& tank);
+	// void addTank(unique_ptr<TankAlgorithm>& tank);
 	int getPlayerIndex() const;
 
     void getBattleInfoFromSatelliteView(SatelliteView& view);

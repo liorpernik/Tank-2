@@ -2,7 +2,7 @@
 // Created by admin on 5/20/2025.
 //
 #include "../header/BTankAlgorithm.h"
-
+#include "../header/Shell.h"
 
 BTankAlgorithm::BTankAlgorithm(int player_index, int tank_index) : MyTankAlgorithm(player_index, tank_index){
 
@@ -13,6 +13,7 @@ ActionRequest BTankAlgorithm::getAction()
 {
 	ActionRequest action = decideAction();
 	updateInnerInfoAfterAction(action);
+	moveKnownShells();
 	return action;
 }
 
@@ -236,3 +237,35 @@ int BTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
 // {
 // 	battle_info->setDirection(dynamic_cast<TankBattleInfo*>(&battleInfo)->getDirection());
 // }
+
+//todo:check
+void BTankAlgorithm::moveKnownShells()
+{
+	auto knownObj = battle_info->getKnownObjects();
+
+	for (auto& [pos, objs] : knownObj)
+	{
+		for (auto it = objs.begin(); it != objs.end(); ++it)
+		{
+			auto obj = *it;
+			if (obj->getSymbol() == '*')
+			{
+				auto* shell = dynamic_cast<Shell*>(obj);
+				if (shell && shell->getDirection() != None)
+				{
+					pair<int, int> oldPos = shell->getPos();
+					pair<int, int> newPos = nextStep(true, oldPos, shell->getDirection());
+					newPos = nextStep(true, newPos, shell->getDirection());
+
+					// Record the move (old position, new position, object)
+					knownObj[newPos].push_back(obj);
+					obj->setPos(newPos); // Update the object's position
+
+					// Remove from current position (safe because we're using the iterator)
+					it = objs.erase(it);
+					continue;
+				}
+			}
+		}
+	}
+}

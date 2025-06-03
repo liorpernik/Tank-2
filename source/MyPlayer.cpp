@@ -13,10 +13,10 @@ MyPlayer::MyPlayer(int player_index, size_t map_width, size_t map_height, size_t
 {
 }
 
-void MyPlayer::addTank(unique_ptr<TankAlgorithm>& tank)
-{
-    tanks.push_back(std::move(tank));
-}
+// void MyPlayer::addTank(unique_ptr<TankAlgorithm>& tank)
+// {
+//     tanks.push_back(std::move(tank));
+// }
 
 int MyPlayer::getPlayerIndex() const { return player_index;}
 
@@ -74,7 +74,7 @@ void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
                 {
                     obj = make_unique<Wall>(pos);
                 }else if (symbol == '*'){
-                   obj = make_unique<Shell>(pos, None, -1);
+                    obj = make_unique<Shell>(pos, None, -1);
                 }else if (isdigit(symbol)){
                     int player = symbol - '0';
                     obj = std::make_unique<Tank>(pos,player_index == 1 ? tanki_1++ : tanki_2++,Direction::None,player_index,shells_per_tank);
