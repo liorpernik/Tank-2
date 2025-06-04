@@ -1,20 +1,6 @@
-//
-// Created by admin on 5/20/2025.
-//
 #include "../header/BTankAlgorithm.h"
 
-
-BTankAlgorithm::BTankAlgorithm(int player_index, int tank_index) : MyTankAlgorithm(player_index, tank_index){
-
-
-}
-
-ActionRequest BTankAlgorithm::getAction()
-{
-	ActionRequest action = decideAction();
-	updateInnerInfoAfterAction(action);
-	return action;
-}
+BTankAlgorithm::BTankAlgorithm(int player_index, int tank_index) : MyTankAlgorithm(player_index, tank_index){}
 
 /**
  * @brief Determines the next move for the tank based on the opponent.

@@ -1,7 +1,3 @@
-//
-// Created by admin on 5/20/2025.
-//
-
 #ifndef BTANKALGORITHM_H
 #define BTANKALGORITHM_H
 #include <utility>
@@ -30,7 +26,7 @@ class BTankAlgorithm : public MyTankAlgorithm {
   bool canShootAfterRotate(Direction targetDir, OppData& opp);
   bool shouldShootOpponent(OppData& opp);
   Direction simulateRotation(ActionRequest act);
-  ActionRequest decideAction();
+  ActionRequest decideAction() override;
 
   public:
   BTankAlgorithm(int player_index, int tank_index);
@@ -41,7 +37,7 @@ class BTankAlgorithm : public MyTankAlgorithm {
 
   // void updateBattleInfo(BattleInfo& battleInfo) override;
 
-  ActionRequest getAction() override;
+  //ActionRequest getAction() override;
 };
 
 #endif //BTANKALGORITHM_H

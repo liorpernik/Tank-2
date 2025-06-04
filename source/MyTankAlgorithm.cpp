@@ -19,7 +19,9 @@ void MyTankAlgorithm::updateBattleInfo(BattleInfo& info)
 
 ActionRequest MyTankAlgorithm::getAction()
 {
-   return ActionRequest::DoNothing;
+	ActionRequest action = decideAction();
+	updateInnerInfoAfterAction(action);
+	return action;
 }
 
 std::pair<int,int> MyTankAlgorithm::nextStep(bool forward,const std::pair<int,int> pos, const Direction dir){
