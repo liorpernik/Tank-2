@@ -41,6 +41,8 @@ public:
     MyTankAlgorithm(int player_index, int tank_index);
     ~MyTankAlgorithm() override = default;
     ActionRequest getAction() override;
+    virtual ActionRequest decideAction(){return ActionRequest::DoNothing;}
+
     void updateBattleInfo(BattleInfo& info) override;
     int getTankId() const{return tank_index;}
     int getOwnerId() const{return player_index;}
