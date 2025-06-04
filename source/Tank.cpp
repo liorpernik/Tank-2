@@ -44,6 +44,7 @@ void Tank::rotate(ActionRequest action) {
 
 void Tank::destroy() {
     destroyed=true;
+    killed_this_round=true;
 }
 
 bool Tank::isDestroyed () const {
