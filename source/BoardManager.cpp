@@ -9,20 +9,18 @@ GameObject* BoardManager::getObjectAt(int x, int y) const {
 
 void BoardManager::printBoard()
 {
-	stringstream boardState;
-	for (int i = 0; i < height; ++i)
-	{
-		for (int j = 0; j < width; ++j)
-		{
-			GameObject* obj = getObjectAt(i,j);//map[i][j]
-			obj != nullptr ?
-				boardState << obj->getSymbol() : boardState << ' ';
-
-		}
-		boardState << "\n";
-	}
+    stringstream boardState;
+    for (int i = 0; i < height; ++i)
+    {
+        for (int j = 0; j < width; ++j)
+        {
+            GameObject* obj = getObjectAt(i,j);
+            obj != nullptr ? boardState << obj->getSymbol() : boardState << ' ';
+        }
+        boardState << "\n";
+    }
 	// Store the complete board state
-	boardStates.push_back(boardState.str());
+    boardStates.push_back(boardState.str());
 }
 
 void BoardManager::writeBoardStates(string fileName)
@@ -175,10 +173,12 @@ void BoardManager::processCollision(vector<GameObject*>& objects) {
 
     // Analyze collision group
     for (auto obj : objects) {
-        if (dynamic_cast<Mine*>(obj)) containsMine = true;
-        else if (dynamic_cast<Tank*>(obj)) containsTank = true;
-        else if (dynamic_cast<Shell*>(obj)) containsShell = true;
-        else if (dynamic_cast<Wall*>(obj)) containsWall = true;
+        if (!obj->isDestroyed()) {
+            if (dynamic_cast<Mine*>(obj)) containsMine = true;
+            else if (dynamic_cast<Tank*>(obj)) containsTank = true;
+            else if (dynamic_cast<Shell*>(obj)) containsShell = true;
+            else if (dynamic_cast<Wall*>(obj)) containsWall = true;
+        }
     }
 
     // Handle special cases
@@ -268,7 +268,8 @@ void BoardManager::boardCleanup()
 
 void BoardManager::cleanupDestroyedObjects(pair<int,int> pos) {
     auto& cell = game_map[pos.first][pos.second];
-    cell.erase(remove_if(cell.begin(), cell.end(),[](const unique_ptr<GameObject>& obj) {return obj && obj->isDestroyed();}),cell.end()); // releases ptr automaticly when erasing.
+    cell.erase(remove_if(cell.begin(), cell.end(),[](const unique_ptr<GameObject>& obj) {return obj && obj->isDestroyed()&& obj->getSymbol()!='T';}),cell.end()); // releases ptr automaticly when erasing.
+    //todo - check tank logging -> when hit, disappears from log next round instead of remaining 'killed'
 }
 
 bool BoardManager::isValidMove(Tank* tank, ActionRequest action) {
@@ -302,6 +303,12 @@ bool BoardManager::isValidMove(Tank* tank, ActionRequest action) {
 void BoardManager::applyMoves(map<Tank*, ActionRequest> moves) {
     for (auto& [tank, action] : moves) {
         if (!tank || tank->isDestroyed()) continue;
+
+        bool isValid = isValidMove(tank, action);
+        tank->setActionSuccess(isValid);
+        tank->setLastAction(action);
+
+        if (!isValid) continue;
 
         pair<int, int> newPos = {-1, -1};
         if (tank->isWaitingToBackward()&&tank->getBackwardCooldown()==0)

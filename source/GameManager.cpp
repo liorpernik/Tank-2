@@ -264,13 +264,6 @@ void GameManager::processRound() {
 		TankAlgorithm* tankPtr = findTankAlgorithmById(tank);
 		ActionRequest action = tankPtr->getAction();
 		actionRequests[tank] = action;
-		if (board->isValidMove(tank, action)){
-			tank->setActionSuccess(true);
-		}
-		else {
-			tank->setActionSuccess(false);
-		}
-		tank->setLastAction(action);
 	}
 	board->applyMoves(actionRequests);
 	updateTanksInfo(tanks);
@@ -290,7 +283,7 @@ void GameManager::updateTanksInfo(vector<Tank*> tanks) {
 		if (tank->getLastAction()==ActionRequest::Shoot)
 			--player_shell_count[tank->getOwnerId()];
 		if (tank->getLastAction()==ActionRequest::GetBattleInfo){
-			dynamic_cast<BoardSatelliteView*>(board_view.get())->setRequsingTankPos(tank->getPos());
+			dynamic_cast<BoardSatelliteView*>(board_view.get())->setRequestingTankPos(tank->getPos());
 			players.at(tank->getOwnerId()-1)->updateTankWithBattleInfo(*tankPtr,*board_view);
 		}
 	}
@@ -327,7 +320,13 @@ string GameManager::generateRoundOutput(map<Tank*,ActionRequest> tankActions) {
 	for (const auto& [tank,acts] : tankActions) {
 		string move=actionToString(acts);
 		if (tank->isDestroyed()) {
-			actions.push_back(tank->isKilledThisRound() ? tank->getActionSuccess()? move + " (ignored) (killed)": " (killed)" : "killed");
+			if (tank->isKilledThisRound()) {
+				actions.push_back(tank->getActionSuccess()?move + " (ignored) (killed)": " (killed)");
+				tank->setKilledThisRound(false);
+			}
+			else {
+				actions.push_back("killed");
+			}
 			continue;
 		}
 		actions.push_back(tank->getActionSuccess() ? move : move + " (ignored)");
