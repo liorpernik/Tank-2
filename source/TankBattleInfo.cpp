@@ -4,6 +4,8 @@
 
 #include "../header/TankBattleInfo.h"
 
+#include "../header/Shell.h"
+
 TankBattleInfo::TankBattleInfo(int tank_index, int player_index) : id(tank_index), player_id(player_index)
 {
     direction = player_id == 1 ? L : R;
@@ -70,4 +72,35 @@ void TankBattleInfo::setMapSize(int h, int w)
 pair<int, int> TankBattleInfo::getMapSize() const
 {
     return map_size;
+}
+
+void TankBattleInfo::updateObjectDirByPosition(pair<int,int> pos, Direction dir)
+{
+    if (!knownObjects[pos].empty())
+    {
+        if (knownObjects[pos].size() > 1 && knownObjects[pos][1]->getSymbol() == '*')
+        {
+            dynamic_cast<Shell*>(knownObjects[pos][1])->setDirection(dir);
+        }else if (knownObjects[pos][0]->getSymbol() == '*')
+        {
+            dynamic_cast<Shell*>(knownObjects[pos][0])->setDirection(dir);
+        }
+    }
+}
+
+Direction TankBattleInfo::calculateRealDirection(int currRow, int currCol, int targetRow, int targetCol) {
+    int rowDiff = targetRow - currRow;
+    int colDiff = targetCol - currCol;
+
+    // Normalize differences to identify direction only if strictly aligned
+    if (rowDiff > 0 && colDiff == 0) return Direction::D;    // Down
+    if (rowDiff < 0 && colDiff == 0) return Direction::U;    // Up
+    if (rowDiff == 0 && colDiff > 0) return Direction::R;    // Right
+    if (rowDiff == 0 && colDiff < 0) return Direction::L;    // Left
+    if (rowDiff == colDiff && rowDiff > 0) return Direction::DR; // Down-Right (strict diagonal)
+    if (rowDiff == -colDiff && rowDiff > 0) return Direction::DL; // Down-Left (strict diagonal)
+    if (rowDiff == colDiff && rowDiff < 0) return Direction::UR; // Up-Right (strict diagonal)
+    if (rowDiff == -colDiff && rowDiff < 0) return Direction::UL; // Up-Left (strict diagonal)
+
+    return Direction::None; // None for non-aligned movement
 }

@@ -95,3 +95,8 @@ void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
     tank_info->setKnownObjects(knownObjects);
     tank_info->setOpponents(opponents);
 }
+
+void MyPlayer::updateStepsLeft()
+{
+    --steps_left;
+}

@@ -21,9 +21,12 @@ int main(int argc, char** argv)
         auto playerFactory = std::make_unique<MyPlayerFactory>();
         auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
         GameManager game(std::move(playerFactory), std::move(tankFactory));
-        game.readBoard(filePath);
-        game.run();
 
+        for(int i =3; i <4; i++){
+            filePath = "inputs/board"+ to_string(i)+ ".txt";
+            game.readBoard(filePath);
+            game.run();
+        }
     } catch (const std::exception& e) {
         std::clog << e.what() << std::endl;
         return 1;

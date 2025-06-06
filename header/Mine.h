@@ -5,8 +5,8 @@ using std::pair;
 
 class Mine : public GameObject {
 private:
-    bool triggered;
-    bool destroyed;
+    bool triggered = false;
+    bool destroyed = false;
     static const char MINE_SYMBOL = '@'; // Assuming this is the intended symbol
 
 public:

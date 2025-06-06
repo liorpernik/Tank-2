@@ -67,8 +67,11 @@ public:
 
     map<pair<int, int>, vector<GameObject*> > getKnownObjects() const;
     void setKnownObjects(map<pair<int, int>, vector<GameObject*> > knownObjects);
+    void updateObjectDirByPosition(pair<int,int> pos, Direction dir);
 
     void setMapSize(int h, int w);
     pair<int, int> getMapSize() const;
+
+    Direction calculateRealDirection(int currRow, int currCol, int targetRow, int targetCol);
 };
 #endif //TANKBATTLEINFO_H

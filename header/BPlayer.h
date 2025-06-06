@@ -3,12 +3,15 @@
 
 #include "../header/MyPlayer.h"
 
-
-using std::unique_ptr, std::vector;
 class Shell;
+using std::unique_ptr, std::vector;
+
+
 class BPlayer : public MyPlayer {
 
-   Direction calcShellsDirection();
+	int last_battleInfo_step = steps_left;
+
+   void calcShellsDirection(vector<Shell*> knownShells);
 
   public:
     BPlayer(int player_index, size_t map_width, size_t map_height,

@@ -18,6 +18,8 @@ public:
 
     // Accessors
     Direction getDirection() const;
+    void setDirection(Direction dir);
+
     int getOwnerId() const;
     bool isDestroyed() const override;
 

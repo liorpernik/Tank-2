@@ -33,6 +33,7 @@ public:
     void updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view) override;
 	// void addTank(unique_ptr<TankAlgorithm>& tank);
 	int getPlayerIndex() const;
+	void updateStepsLeft();
 
     void getBattleInfoFromSatelliteView(SatelliteView& view);
 };

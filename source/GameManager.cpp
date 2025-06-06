@@ -203,21 +203,9 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 
 void GameManager::initializePlayers() {
 	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
-	// setPlayerTankAlgorithms(1);
 	players.push_back(player_factory->create(2, rows,cols,max_steps, num_shells));
-	// setPlayerTankAlgorithms(2);
 }
 
-// void GameManager::setPlayerTankAlgorithms(int player_id)
-// {
-// 	for (size_t i = 0; i < player_tanks[player_id].size(); ++i)
-// 	{
-// 		int index = static_cast<int>(i);
-// 		unique_ptr<TankAlgorithm> tank = tank_factory->create(player_id, index);
-// 		dynamic_cast<MyTankAlgorithm*>(tank.get())->setShells(num_shells);
-// 		dynamic_cast<MyPlayer*>(players[0].get())->addTank(tank);
-// 	}
-// }
 
 void GameManager::setupOutputFile(const string& filePath) {
     size_t last_slash = filePath.find_last_of("/\\");
@@ -225,17 +213,26 @@ void GameManager::setupOutputFile(const string& filePath) {
 }
 
 void GameManager::run() {
+
 	board->printBoard(); //initial board
+
 	while (!isGameOver() && current_step < max_steps) {
 		processRound();
 		dynamic_cast<BoardSatelliteView*>(board_view.get())->update(board->objMapToCharMap());
 		board->printBoard();
-
-		current_step++;
+		//todo: send curr steps to players
+		++current_step;
 		if (player_shell_count[0]==0&&player_shell_count[1]==0) {
-			steps_since_no_shells++;
+			++steps_since_no_shells;
 		}
+
+		for (auto& player : players)
+		{
+			dynamic_cast<MyPlayer*>(player.get())->updateStepsLeft();
+		}
+
 	}
+
 	logGameResult();
 	writeOutput();
 	board->writeBoardStates(output_file);

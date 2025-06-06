@@ -16,7 +16,6 @@ class MyTankAlgorithm : public TankAlgorithm {
 protected:
     unique_ptr<TankBattleInfo> battle_info;
     pair<int,int> nextStep(bool forward,const pair<int,int> pos, const Direction dir);
-    Direction calculateRealDirection(int currRow, int currCol, int targetRow, int targetCol);
     ActionRequest determineRotation(Direction currentDir, Direction desiredDir);
 
     // Safety check for backward movement
@@ -37,6 +36,7 @@ protected:
     int calculateActionsToOpponent(const OppData& oppPos);
     void updateInnerInfoAfterAction(ActionRequest action);
     int wrap(int value, int size) { return size != -1 ? (value % size + size) % size : value; }; // wrap-around edges
+
 public:
     MyTankAlgorithm(int player_index, int tank_index);
     ~MyTankAlgorithm() override = default;

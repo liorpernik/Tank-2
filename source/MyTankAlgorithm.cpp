@@ -32,22 +32,7 @@ std::pair<int,int> MyTankAlgorithm::nextStep(bool forward,const std::pair<int,in
     return {newRow , newCol };
 }
 
-Direction MyTankAlgorithm::calculateRealDirection(int currRow, int currCol, int targetRow, int targetCol) {
-    int rowDiff = targetRow - currRow;
-    int colDiff = targetCol - currCol;
 
-    // Normalize differences to identify direction only if strictly aligned
-    if (rowDiff > 0 && colDiff == 0) return Direction::D;    // Down
-    if (rowDiff < 0 && colDiff == 0) return Direction::U;    // Up
-    if (rowDiff == 0 && colDiff > 0) return Direction::R;    // Right
-    if (rowDiff == 0 && colDiff < 0) return Direction::L;    // Left
-    if (rowDiff == colDiff && rowDiff > 0) return Direction::DR; // Down-Right (strict diagonal)
-    if (rowDiff == -colDiff && rowDiff > 0) return Direction::DL; // Down-Left (strict diagonal)
-    if (rowDiff == colDiff && rowDiff < 0) return Direction::UR; // Up-Right (strict diagonal)
-    if (rowDiff == -colDiff && rowDiff < 0) return Direction::UL; // Up-Left (strict diagonal)
-
-    return Direction::None; // None for non-aligned movement
-}
 
 void MyTankAlgorithm::rotate(ActionRequest action) {
     Direction dir = battle_info->getDirection();

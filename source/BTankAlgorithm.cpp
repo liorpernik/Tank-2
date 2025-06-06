@@ -124,7 +124,7 @@ bool BTankAlgorithm::shouldShootOpponent(OppData& opp) {
 
     // Check if we're aligned with any predicted position
     for (const auto& [r, c] : predictedPositions) {
-        if (battle_info->getDirection() == calculateRealDirection(currentRow, currentCol, r, c)) {
+        if (battle_info->getDirection() == battle_info->calculateRealDirection(currentRow, currentCol, r, c)) {
             return true;
         }
     }

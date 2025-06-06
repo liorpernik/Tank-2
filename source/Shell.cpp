@@ -10,6 +10,11 @@ Direction Shell::getDirection () const {
     return direction;
 }
 
+void Shell::setDirection (Direction dir)
+{
+    direction = dir;
+}
+
 int Shell::getOwnerId() const {
     return ownerId;
 }
