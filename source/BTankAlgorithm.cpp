@@ -1,6 +1,3 @@
-//
-// Created by admin on 5/20/2025.
-//
 #include "../header/BTankAlgorithm.h"
 #include "../header/Shell.h"
 

@@ -17,7 +17,7 @@ class TankBattleInfo : public BattleInfo {
     int id = -1;
     int player_id = -1;
     Direction direction = None;
-    pair<int, int> position;
+    pair<int, int> position={-1,-1};
     int remaining_shells = 0;
     int shoot_cooldown = 0;
     bool is_waiting_for_backward = false;

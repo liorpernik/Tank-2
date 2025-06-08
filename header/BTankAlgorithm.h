@@ -1,7 +1,3 @@
-//
-// Created by admin on 5/20/2025.
-//
-
 #ifndef BTANKALGORITHM_H
 #define BTANKALGORITHM_H
 #include <utility>

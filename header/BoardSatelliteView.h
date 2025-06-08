@@ -38,6 +38,6 @@ public:
         // Empty space
         return map[posX][posY];
     }
-    void setRequsingTankPos(pair<int, int> pos) {requestingTankPos=pos;}
+    void setRequestingTankPos(pair<int, int> pos) {requestingTankPos=pos;}
 };
 #endif //BOARDSATELLITEVIEW_H
