@@ -233,7 +233,8 @@ void BoardManager::processCollision(vector<GameObject*>& objects) {
     if (containsMine&&containsTank) {
         // Mine-Tank explosion destroys everything in the cell
         for (auto obj : objects) {
-            obj->destroy();
+            if (!obj->isDestroyed()) //ignore destroyed objects
+                obj->destroy();
         }
         return;
     }
@@ -242,7 +243,8 @@ void BoardManager::processCollision(vector<GameObject*>& objects) {
     if (containsTank && count_if(objects.begin(), objects.end(),
         [](GameObject* obj) { return dynamic_cast<Tank*>(obj); }) > 1) {
         for (auto obj : objects) {
-            if (auto tank = dynamic_cast<Tank*>(obj)) {
+            if (auto tank = dynamic_cast<Tank*>(obj)){
+                if (!tank->isDestroyed()) //ignore destroyed tanks
                 tank->destroy();
             }
         }
@@ -265,7 +267,8 @@ void BoardManager::processCollision(vector<GameObject*>& objects) {
             if (containsTank) {
                 for (auto other : objects) {
                     if (auto tank = dynamic_cast<Tank*>(other)) {
-                        tank->destroy();
+                        if (!tank->isDestroyed()) //ignore destroyed tanks
+                            tank->destroy();
                         destroyShell = true;
                     }
                 }
