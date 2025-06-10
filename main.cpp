@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 
         auto playerFactory = std::make_unique<MyPlayerFactory>();
         auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
-        for(int i=6;i<7;++i){
+        for(int i=1;i<16;++i){
             std::cout <<"test "<<i <<"\n";
 
             auto playerFactory = std::make_unique<MyPlayerFactory>();
