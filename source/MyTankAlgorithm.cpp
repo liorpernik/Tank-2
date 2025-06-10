@@ -220,6 +220,8 @@ ActionRequest MyTankAlgorithm::checkForEscape() {
 bool MyTankAlgorithm::willBeHitIn(int row, int col, int t) {
 	auto knownObjects = battle_info->getKnownObjects();
 	for (auto& [pos, objects]: knownObjects) {
+		if (objects.empty()) continue;
+
 		auto object = objects.size() > 1 ? objects[1] :  objects[0];
 		char symbol = object->getSymbol();
 		if (symbol != '*') continue;

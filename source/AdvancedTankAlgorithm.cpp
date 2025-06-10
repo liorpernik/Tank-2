@@ -122,15 +122,18 @@ bool AdvancedTankAlgorithm::shouldShootOpponent(OppData& opp) {
 
 	// Basic opponent always moves forward when possible, else rotates right
 	Direction oppDir = opp.opponentDir;
-	auto [dr, dc] = offsets[static_cast<int>(oppDir)];
-	auto [h,w] = battle_info->getMapSize();
 
 	// Predict opponent's next 2 positions
 	vector<pair<int,int>> predictedPositions = {
 		{targetRow, targetCol},  // Current position
-		{wrap(targetRow + dr,h), wrap(targetCol + dc,w)} // Next position
-		,{wrap(targetRow + dr*2,h), wrap(targetCol + dc*2,w)} // Position after next
 	};
+
+    if(oppDir != None){
+      auto [h,w] = battle_info->getMapSize();
+      auto [dr, dc] = offsets[static_cast<int>(oppDir)];
+      predictedPositions.push_back({wrap(targetRow + dr,h), wrap(targetCol + dc,w)}); // Next position
+      predictedPositions.push_back({wrap(targetRow + dr*2,h), wrap(targetCol + dc*2,w)}); // Position after next
+    }
 
     // Check if we're aligned with any predicted position
     for (const auto& [r, c] : predictedPositions) {
@@ -264,9 +267,9 @@ int AdvancedTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
 void AdvancedTankAlgorithm::moveKnownShells()
 {
 	auto knownObj = battle_info->getKnownObjects();
+	vector<pair<int,int>> pos_to_del;
 
-	for (auto& [pos, objs] : knownObj)
-	{
+	for (auto& [pos, objs] : knownObj){
 		for (auto it = objs.begin(); it != objs.end();)
 		{
 			auto obj = *it;
@@ -285,10 +288,17 @@ void AdvancedTankAlgorithm::moveKnownShells()
 
 					// Remove from current position (safe because we're using the iterator)
 					it = objs.erase(it);
+                    if(it == objs.end()) pos_to_del.push_back(pos);
 					continue;
 				}
 			}
 			++it;
 		}
 	}
+
+    for(auto pos : pos_to_del) {
+      knownObj.erase(pos);
+    }
+
+    battle_info->setKnownObjects(knownObj);
 }

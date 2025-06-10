@@ -81,15 +81,15 @@ void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
 
            if (vec.size() > 1 && (symbol == '@' || symbol == '#'))
            {
-               vec.erase(vec.end() - 1);
-
+               knownObjects[pos].erase(knownObjects[pos].end() - 1);
+               if (knownObjects[pos].empty()) knownObjects.erase(pos);
            }else
            {
                unique_ptr<GameObject> obj;
-               if (symbol == '@')
+               if (symbol == '@' && vec.empty())
                {
                    obj = make_unique<Mine>(pos);
-               }else if (symbol == '#')
+               }else if (symbol == '#' && vec.empty())
                {
                    obj = make_unique<Wall>(pos);
                }else if (symbol == '*'){
@@ -102,8 +102,10 @@ void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
                        opponents.push_back(OppData(pos));
                    }
                }
-               knownObjects[pos].push_back(obj.get());
-               objectStorage.push_back(move(obj));
+               if (obj){
+                   knownObjects[pos].push_back(obj.get());
+                   objectStorage.push_back(move(obj));
+               }
            }
        }
    }

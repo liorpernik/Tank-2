@@ -119,7 +119,7 @@ void TankBattleInfo::addOpponent(pair<int,int> position, Direction dir)
  */
 GameObject* TankBattleInfo::getObjectByPosition(pair<int,int> pos) const
 {
-    return knownObjects.contains(pos) ? knownObjects.at(pos).size() > 1 ? knownObjects.at(pos)[1] : knownObjects.at(pos)[0] : nullptr;
+    return knownObjects.contains(pos) && !knownObjects.at(pos).empty() ? knownObjects.at(pos).size() > 1 ? knownObjects.at(pos)[1] : knownObjects.at(pos)[0] : nullptr;
 }
 
 /**
