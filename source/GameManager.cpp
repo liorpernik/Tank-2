@@ -1,8 +1,19 @@
 #include "../header/GameManager.h"
 
+/**
+ * @brief Constructs the GameManager with player and tank algorithm factories.
+ * @param playerFactory Unique pointer to a PlayerFactory object.
+ * @param tankFactory Unique pointer to a TankAlgorithmFactory object.
+ */
 GameManager::GameManager(unique_ptr<PlayerFactory> playerFactory,unique_ptr<TankAlgorithmFactory> tankFactory)
 	: player_factory(move(playerFactory)), tank_factory(move(tankFactory)) {}
 
+/**
+ * @brief Reads and parses the game board from the input file.
+ * @details Parses metadata, validates input, initializes players and sets up output file.
+ * @param filePath Path to the input file.
+ * @throws invalid_argument if the input file cannot be opened.
+ */
 void GameManager::readBoard(const string& filePath) {
     ifstream file(filePath);
 	if (!file) {
@@ -30,6 +41,11 @@ void GameManager::readBoard(const string& filePath) {
 	setupOutputFile(filePath);
 }
 
+/**
+ * @brief Validates the number of tanks for each player.
+ * @details Throws exceptions if a player has zero tanks and logs the result.
+ * @throws runtime_error if any player has zero tanks.
+ */
 void GameManager::validateTankCounts() {
 	if (player_tank_count[1] == 0 && player_tank_count[2] == 0) {
 		logs.push_back("Tie, both players have zero tanks");
@@ -50,6 +66,12 @@ void GameManager::validateTankCounts() {
 	}
 }
 
+/**
+ * @brief Parses the first five lines of metadata from the input file.
+ * @param file Input file stream.
+ * @param hasErrors Reference to a boolean flag indicating if errors occurred.
+ * @param errorLog Reference to the error log output stream.
+ */
 void GameManager::parseMetadata(ifstream& file, bool& hasErrors, ofstream& errorLog) {
     string line;
     for (int i =0; i < 5; i++) {
@@ -77,10 +99,23 @@ void GameManager::parseMetadata(ifstream& file, bool& hasErrors, ofstream& error
     }
 }
 
+/**
+ * @brief Checks if all required metadata values have been set properly.
+ * @return true if max_steps, num_shells, rows, and cols are all greater than zero.
+ */
 bool GameManager::hasAllMetadata() const {
 	return max_steps > 0 && num_shells > 0 && rows > 0 && cols > 0;
 }
 
+/**
+ * @brief Attempts to parse a single metadata key-value pair from a line.
+ * @param line Input line to parse.
+ * @param key Metadata key to search for.
+ * @param value Reference to store parsed integer value.
+ * @param hasErrors Reference flag to mark error occurrence.
+ * @param errorLog Output stream to log errors.
+ * @return true if the key is found and value parsed successfully, false otherwise.
+ */
 bool GameManager::tryParseMetadata(const string& line, const string& key,int& value, bool& hasErrors, ofstream& errorLog) {
     if (line.find(key) != string::npos) {
         size_t equalPos = line.find('=');
@@ -98,6 +133,13 @@ bool GameManager::tryParseMetadata(const string& line, const string& key,int& va
     return false;
 }
 
+/**
+ * @brief Processes the map rows after metadata parsing.
+ *        Constructs the internal map representation with game objects.
+ * @param file Input file stream positioned at map rows.
+ * @param hasErrors Reference flag for error detection.
+ * @param errorLog Stream to log any parsing errors.
+ */
 void GameManager::processMapRows(ifstream& file, bool& hasErrors, ofstream& errorLog) {
     string line;
 	vector<vector<vector<unique_ptr<GameObject>>>> map(rows);
@@ -128,6 +170,13 @@ void GameManager::processMapRows(ifstream& file, bool& hasErrors, ofstream& erro
 	board_view=make_unique<BoardSatelliteView>(rows,cols,board->objMapToCharMap());
 }
 
+/**
+ * @brief Checks for and logs if a row has excess columns beyond expected count.
+ * @param line The line representing a map row.
+ * @param row Row index being checked.
+ * @param hasErrors Reference flag to indicate errors.
+ * @param errorLog Stream to log errors.
+ */
 void GameManager::checkExcessColumns(const string& line, size_t row,bool& hasErrors, ofstream& errorLog) {
 	if (line.size() > cols) {
 		hasErrors = true;
@@ -136,6 +185,12 @@ void GameManager::checkExcessColumns(const string& line, size_t row,bool& hasErr
 	}
 }
 
+/**
+ * @brief Checks for extra rows beyond expected count and logs any found.
+ * @param file Input file stream at end of reading map rows.
+ * @param hasErrors Reference flag to indicate errors.
+ * @param errorLog Stream to log errors.
+ */
 void GameManager::checkExcessRows(ifstream& file, bool& hasErrors,ofstream& errorLog) {
 	size_t extraRows = 0;
 	string line;
@@ -148,6 +203,14 @@ void GameManager::checkExcessRows(ifstream& file, bool& hasErrors,ofstream& erro
 	}
 }
 
+/**
+ * @brief Processes each cell character in a map row and creates game objects accordingly.
+ * @param line The string representing a row of the map.
+ * @param row The row index.
+ * @param map The map data structure being populated.
+ * @param hasErrors Reference flag to mark errors.
+ * @param errorLog Stream to log errors.
+ */
 void GameManager::processRowCells(const string& line, size_t row,vector<vector<vector<unique_ptr<GameObject>>>>& map, bool& hasErrors, ofstream& errorLog) {
 
     for (size_t col = 0; col < cols; ++col) {
@@ -157,6 +220,15 @@ void GameManager::processRowCells(const string& line, size_t row,vector<vector<v
     }
 }
 
+/**
+ * @brief Processes a single map cell symbol and creates the appropriate GameObject.
+ * @param symbol Character symbol representing the map cell.
+ * @param row Row index of the cell.
+ * @param col Column index of the cell.
+ * @param hasErrors Reference flag for error detection.
+ * @param errorLog Stream to log errors.
+ * @return Unique pointer to the created GameObject or nullptr if empty/invalid.
+ */
 unique_ptr<GameObject> GameManager::processCell(char symbol, size_t row, size_t col,bool& hasErrors, ofstream& errorLog) {
 
 	pair pos = {static_cast<int>(row), static_cast<int>(col) };
@@ -176,6 +248,16 @@ unique_ptr<GameObject> GameManager::processCell(char symbol, size_t row, size_t 
     }
 	return nullptr;
 }
+
+/**
+ * @brief Handles creating a tank game object for the given player and position.
+ * @param player_id The ID of the player (1 or 2).
+ * @param row Row position of the tank.
+ * @param col Column position of the tank.
+ * @param hasErrors Reference flag for error detection.
+ * @param errorLog Stream to log errors.
+ * @return Unique pointer to the created Tank object or nullptr on failure.
+ */
 unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t col,bool& hasErrors, ofstream& errorLog) {
 	// Validate player ID
 	if (player_id != 1 && player_id != 2) {
@@ -199,24 +281,33 @@ unique_ptr<GameObject> GameManager::handleTank(int player_id, size_t row, size_t
 	return nullptr;
 }
 
-
-
+/**
+ * @brief Initializes player instances using the player factory.
+ */
 void GameManager::initializePlayers() {
 	players.push_back(player_factory->create(1,rows,cols, max_steps, num_shells));
 	players.push_back(player_factory->create(2, rows,cols,max_steps, num_shells));
 }
 
-
+/**
+ * @brief Sets up the output file path based on the input file path.
+ * @param inputFilePath The path to the input file.
+ */
 void GameManager::setupOutputFile(const string& filePath) {
     size_t last_slash = filePath.find_last_of("/\\");
     output_file = "output_" + (last_slash == string::npos ? filePath : filePath.substr(last_slash + 1)); // string::npos = “not found”
 }
 
+/**
+ * @brief Runs the game loop until termination conditions are met.
+ *        Calls each player's turn to decide tank actions.
+ *        Updates the board and logs events.
+ */
 void GameManager::run() {
 
 	board->printBoard(); //initial board
 
-	while (!isGameOver() && current_step < max_steps) {
+	while (!isGameOver()) {
 		processRound();
 		dynamic_cast<BoardSatelliteView*>(board_view.get())->update(board->objMapToCharMap());
 		board->printBoard();
@@ -238,10 +329,19 @@ void GameManager::run() {
 	board->writeBoardStates(output_file);
 }
 
+/**
+ * @brief Counts the number of tanks still alive for a given player.
+ * @param player_id The ID of the player (1 or 2).
+ * @return The count of alive tanks for the player.
+ */
 int GameManager::count_alive_tanks(int player_id) const {
 	return player_tank_count.at(player_id);
 }
 
+/**
+ * @brief Processes a single round of the game.
+ *        Moves fired shells, collects tank actions, applies moves, updates tank info, and logs actions.
+ */
 void GameManager::processRound() {
 	board->moveFiredShells();
 
@@ -268,6 +368,11 @@ void GameManager::processRound() {
 	board->boardCleanup();
 }
 
+/**
+ * @brief Updates internal information about tanks after a round.
+ *        Updates tank positions, tank counts, shell counts, and processes battle info requests.
+ * @param tanks Vector of pointers to Tank objects.
+ */
 void GameManager::updateTanksInfo(vector<Tank*> tanks) {
 	int index;
 	TankAlgorithm* tankPtr;
@@ -285,6 +390,12 @@ void GameManager::updateTanksInfo(vector<Tank*> tanks) {
 		}
 	}
 }
+
+/**
+ * @brief Retrieves the index of a TankAlgorithm within the player's tank algorithm vector.
+ * @param t Pointer to the TankAlgorithm to find.
+ * @return Index of the tank algorithm or -1 if not found.
+ */
 int GameManager::getTankIndex(TankAlgorithm* t) {
 	MyTankAlgorithm* tank=dynamic_cast<MyTankAlgorithm*>(t);
 	const auto& vec=player_tanks_algo[tank->getOwnerId()];
@@ -296,6 +407,11 @@ int GameManager::getTankIndex(TankAlgorithm* t) {
 	return -1; // Not found
 }
 
+/**
+ * @brief Finds the TankAlgorithm object corresponding to a Tank by its ID and owner.
+ * @param tankData Pointer to the Tank object.
+ * @return Pointer to the TankAlgorithm matching the tank or nullptr if not found.
+ */
 TankAlgorithm* GameManager::findTankAlgorithmById(Tank* tankData) {
 	auto it = player_tanks_algo.find(tankData->getOwnerId());
 	if (it != player_tanks_algo.end()) {
@@ -310,7 +426,11 @@ TankAlgorithm* GameManager::findTankAlgorithmById(Tank* tankData) {
 	return nullptr;
 }
 
-
+/**
+ * @brief Converts the actions of tanks for a round into a formatted string output.
+ * @param tankActions Map of Tank pointers to their respective ActionRequests.
+ * @return String summarizing the actions performed by each tank.
+ */
 string GameManager::generateRoundOutput(map<Tank*,ActionRequest> tankActions) {
 	vector<string> actions;
 	//vector<Tank*> tanks=board->getSortedTanks();
@@ -331,6 +451,11 @@ string GameManager::generateRoundOutput(map<Tank*,ActionRequest> tankActions) {
 	return joinActions(actions);
 }
 
+/**
+ * @brief Joins a vector of action strings into a single comma-separated string.
+ * @param actions Vector of action strings.
+ * @return Single string with actions separated by commas.
+ */
 string GameManager::joinActions(const vector<string>& actions) {
     string result;
     for (size_t i = 0; i < actions.size(); ++i) {
@@ -340,6 +465,10 @@ string GameManager::joinActions(const vector<string>& actions) {
     return result;
 }
 
+/**
+ * @brief Logs the game result based on remaining alive tanks.
+ *        Adds a summary message to the logs vector.
+ */
 void GameManager::logGameResult() {
 	int p1 = count_alive_tanks(1);
 	int p2 = count_alive_tanks(2);
@@ -357,6 +486,11 @@ void GameManager::logGameResult() {
 	}
 }
 
+/**
+ * @brief Converts an ActionRequest enum to its string representation.
+ * @param action The ActionRequest to convert.
+ * @return The string corresponding to the action.
+ */
 string GameManager::actionToString(ActionRequest action) {
 	switch (action) {
 		case ActionRequest::MoveForward: return "MoveForward";
@@ -372,6 +506,10 @@ string GameManager::actionToString(ActionRequest action) {
 	}
 }
 
+/**
+ * @brief Writes the logs collected during the game to the output file.
+ *        Appends each log entry on a new line.
+ */
 void GameManager::writeOutput() {
 	ofstream out(output_file);
 	for (const auto& line : logs) {
@@ -379,6 +517,10 @@ void GameManager::writeOutput() {
 	}
 }
 
+/**
+ * @brief Checks if the game is over.
+ * @return True if the game ended either because max steps reached or one player has no tanks.
+ */
 bool GameManager::isGameOver() const {
 	int p1_tanks = count_alive_tanks(1);
 	int p2_tanks = count_alive_tanks(2);

@@ -4,7 +4,6 @@
 using std::pair;
 
 class Wall : public GameObject {
-private:
     int hitCount=0;
     static const int WALL_MAX_HITS = 2; // Assuming this is the intended max hits
     static const char WALL_SYMBOL = '#'; // Assuming this is the intended symbol

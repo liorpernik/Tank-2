@@ -7,7 +7,7 @@
 
 #include <memory>
 
-using std::unique_ptr,std::make_unique,std::pair;
+using std::pair,std::vector,std::abs,std::make_unique,std::unique_ptr;
 
 class MyTankAlgorithm : public TankAlgorithm {
     int player_index;

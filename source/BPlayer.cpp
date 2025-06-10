@@ -1,10 +1,20 @@
 #include "../header/BPlayer.h"
 #include "../header/Shell.h"
 
+/**
+ * Constructor for BPlayer.
+ * Initializes the player with map size, max steps, and number of shells.
+ */
 BPlayer::BPlayer(int player_index, size_t map_width, size_t map_height,
              size_t max_steps, size_t num_shells) : MyPlayer(player_index, map_width, map_height,max_steps,num_shells) {
  }
 
+/**
+ * @brief Updates the provided tank's battle info using the current satellite view.
+ *
+ * @param tank The tank algorithm instance to update.
+ * @param view The satellite view containing the latest battlefield info.
+ */
 void BPlayer::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view)  {
     auto knownShells = getShellsFromKnownObjects();
     getBattleInfoFromSatelliteView(view);
@@ -15,6 +25,12 @@ void BPlayer::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view)
 	last_battleInfo_step = steps_left;
 }
 
+/**
+ * @brief Calculates the direction of shells that currently have unknown directions.
+ * This method attempts to infer direction by checking where
+ *
+ * @param knownShells Vector of pointers to known Shell objects.
+ */
 void BPlayer::calcShellsDirection(vector<Shell*> knownShells) {
 
 	int steps_passed = 2*(last_battleInfo_step - steps_left);
@@ -22,10 +38,10 @@ void BPlayer::calcShellsDirection(vector<Shell*> knownShells) {
     auto tank_info =  dynamic_cast<TankBattleInfo*>(battle_info.get());
     pair<int, int> new_pos;
 
-    auto calc_pos = [h = this->map_height, w= this->map_width](const std::pair<int, int>& pos,
-               const std::pair<int, int>& dir_offset,
+    auto calc_pos = [h = this->map_height, w= this->map_width](const pair<int, int>& pos,
+               const pair<int, int>& dir_offset,
                int steps) {
-        return std::make_pair(
+        return make_pair(
             ((pos.first + dir_offset.first * steps) % h + h) % h,
             ((pos.second + dir_offset.second * steps) % w + w) % w
         );
@@ -60,9 +76,13 @@ void BPlayer::calcShellsDirection(vector<Shell*> knownShells) {
             candidates.clear();
         }
     }
-
 }
 
+/**
+ * @brief Retrieves a vector of pointers to all known Shell objects in the current battle info.
+ *
+ * @return Vector of Shell pointers representing all known shells.
+ */
 vector<Shell*> BPlayer::getShellsFromKnownObjects() {
     auto knownObj = dynamic_cast<TankBattleInfo*>(battle_info.get())->getKnownObjects();
     vector<Shell*> shells;

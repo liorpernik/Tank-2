@@ -1,12 +1,15 @@
-#include "../header/BTankAlgorithm.h"
+#include "../header/AdvancedTankAlgorithm.h"
 #include "../header/Shell.h"
 
-BTankAlgorithm::BTankAlgorithm(int player_index, int tank_index) : MyTankAlgorithm(player_index, tank_index){
+// Constructor: Initializes the AdvancedTankAlgorithm using base class constructor
+AdvancedTankAlgorithm::AdvancedTankAlgorithm(int player_index, int tank_index) : MyTankAlgorithm(player_index, tank_index) {}
 
-
-}
-
-ActionRequest BTankAlgorithm::getAction()
+/**
+ * @brief Determines and returns the next action.
+ *
+ * @return The decided ActionRequest.
+ */
+ActionRequest AdvancedTankAlgorithm::getAction()
 {
 	ActionRequest action = decideAction();
 	updateInnerInfoAfterAction(action);
@@ -15,12 +18,11 @@ ActionRequest BTankAlgorithm::getAction()
 }
 
 /**
- * @brief Determines the next move for the tank based on the opponent.
+ * @brief Determines the next move for the tank based on current gathered info.
  *
- * @param opp The opponent's data.
  * @return The next decided Action.
  */
-ActionRequest BTankAlgorithm::decideAction() {
+ActionRequest AdvancedTankAlgorithm::decideAction() {
 	auto [currentRow, currentCol] = battle_info->getPosition();
 
 	OppData opp = getClosestOpponent();
@@ -82,7 +84,7 @@ ActionRequest BTankAlgorithm::decideAction() {
  * @param act The rotation ActionRequest to simulate.
  * @return The new direction after the rotation, or Direction::None if not safe.
  */
-Direction BTankAlgorithm::simulateRotation(ActionRequest act) {
+Direction AdvancedTankAlgorithm::simulateRotation(ActionRequest act) {
 	Direction currentDir = battle_info->getDirection();
 	rotate(act);
 	Direction newDir = battle_info->getDirection();
@@ -99,7 +101,7 @@ Direction BTankAlgorithm::simulateRotation(ActionRequest act) {
  * @param opp The opponent's data.
  * @return True if shooting is advantageous, false otherwise.
  */
-bool BTankAlgorithm::shouldShootOpponent(OppData& opp) {
+bool AdvancedTankAlgorithm::shouldShootOpponent(OppData& opp) {
 	if (battle_info->isWaitingToShoot() || battle_info->getRemainingShells() <= 0) {
 		return false;
 	}
@@ -128,8 +130,14 @@ bool BTankAlgorithm::shouldShootOpponent(OppData& opp) {
     return false;
 }
 
-// New helper function
-bool BTankAlgorithm::canShootAfterRotate(Direction targetDir, OppData& opp) {
+/**
+ * @brief Simulates a rotation to check if shooting is possible afterward.
+ *
+ * @param targetDir The direction to simulate.
+ * @param opp The opponent to shoot at.
+ * @return True if the shot would be aligned, false otherwise.
+ */
+bool AdvancedTankAlgorithm::canShootAfterRotate(Direction targetDir, OppData& opp) {
     // Simulate rotation
     Direction currentDir = battle_info->getDirection();
     battle_info->setDirection(targetDir);
@@ -147,7 +155,7 @@ bool BTankAlgorithm::canShootAfterRotate(Direction targetDir, OppData& opp) {
  *
  * @return The best escape rotation ActionRequest, or ActionRequest::None if none found.
  */
-ActionRequest BTankAlgorithm::calculateBestEscapeRotation() {
+ActionRequest AdvancedTankAlgorithm::calculateBestEscapeRotation() {
 	Direction currentDir = battle_info->getDirection();
 
 	vector<RotationOption> options;
@@ -163,7 +171,7 @@ ActionRequest BTankAlgorithm::calculateBestEscapeRotation() {
 	}
 
     // Sort options by safety score (descending)
-    std::sort(options.begin(), options.end(), [](const RotationOption& a, const RotationOption& b) {
+    sort(options.begin(), options.end(), [](const RotationOption& a, const RotationOption& b) {
         if (a.safetyScore == b.safetyScore) {
             return a.canMove > b.canMove; // Prefer options that allow movement
         }
@@ -181,7 +189,7 @@ ActionRequest BTankAlgorithm::calculateBestEscapeRotation() {
  * @param oldDir The old direction before rotation.
  * @return A RotationOption containing safety evaluation.
  */
-RotationOption BTankAlgorithm::rotationOption(ActionRequest rotation, Direction newDir,Direction oldDir ) {
+RotationOption AdvancedTankAlgorithm::rotationOption(ActionRequest rotation, Direction newDir,Direction oldDir ) {
 	RotationOption option;
 	option.action = rotation;
 	option.newDir = newDir;
@@ -210,12 +218,12 @@ RotationOption BTankAlgorithm::rotationOption(ActionRequest rotation, Direction 
 }
 
 /**
- * @brief Counts the number of open (safe) spaces around a given position.
+ * @brief Counts the number of open spaces around a given position.
  *
  * @param pos The position to check around.
  * @return The number of open adjacent cells.
  */
-int BTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
+int AdvancedTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
 	auto [row, col] = pos;
 	int openCount = 0;
 	for(auto [dr, dc] : offsets) {
@@ -230,13 +238,19 @@ int BTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
   }
 
 
-// void BTankAlgorithm::updateBattleInfo(BattleInfo& battleInfo)
+// void AdvancedTankAlgorithm::updateBattleInfo(BattleInfo& battleInfo)
 // {
 // 	battle_info->setDirection(dynamic_cast<TankBattleInfo*>(&battleInfo)->getDirection());
 // }
 
 //todo:check
-void BTankAlgorithm::moveKnownShells()
+/**
+ * @brief Updates the positions of known shell objects on the map.
+ *
+ * Simulates shell movement by two steps in their current direction
+ * and updates their location in the known objects map.
+ */
+void AdvancedTankAlgorithm::moveKnownShells()
 {
 	auto knownObj = battle_info->getKnownObjects();
 

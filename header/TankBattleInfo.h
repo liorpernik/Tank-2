@@ -7,7 +7,7 @@
 #include <memory>
 #include <map>
 
-using std::map,std::vector,std::pair, std::unique_ptr;
+using std::map,std::vector,std::pair, std::unique_ptr,std::make_pair;
 struct OppData{
     pair<int,int> opponentPos;
     Direction opponentDir = None;

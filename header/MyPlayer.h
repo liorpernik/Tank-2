@@ -6,7 +6,7 @@
 #include <vector>
 #include <memory>
 
-using std::unique_ptr, std::vector;
+using std::unique_ptr, std::vector,std::make_unique;
 
 class MyPlayer : public Player {
 
@@ -16,9 +16,7 @@ protected:
     size_t map_height = 0;
 	int steps_left;
 	int shells_per_tank;
-    // TODO: class that implements BattleInfo, here, DataStructure to handle last 2 sequential battleinfos(to determine direction)
-	// vector<unique_ptr<TankAlgorithm>> tanks;
-	unique_ptr<BattleInfo> battle_info;
+   unique_ptr<BattleInfo> battle_info;
 
 public:
     MyPlayer(int player_index, size_t map_width, size_t map_height,

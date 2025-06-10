@@ -1,6 +1,3 @@
-//
-// Created by admin on 5/6/2025.
-//
 #include <sstream>
 #include <string>
 #include <iostream>
@@ -18,15 +15,27 @@ int main(int argc, char** argv)
         if(argc > 1) {
             filePath = argv[1];
         }
+//        auto playerFactory = std::make_unique<MyPlayerFactory>();
+//        auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
+//        GameManager game(std::move(playerFactory), std::move(tankFactory));
+//        game.readBoard(filePath);
+//        game.run();
+//
+
+    auto playerFactory = std::make_unique<MyPlayerFactory>();
+    auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
+    for(int i=1;i<7;++i){
+      std::cout <<"test "<<i <<"\n";
+
         auto playerFactory = std::make_unique<MyPlayerFactory>();
         auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
+        filePath = "C:\\Users\\liorp\\Documents\\Uni_HW\\Cpp\\HW2\\Tank-2\\inputs\\t" + to_string(i) + ".txt";
         GameManager game(std::move(playerFactory), std::move(tankFactory));
+        game.readBoard(filePath);
+        game.run();
+        std::cout <<"done\n";
 
-        for(int i =3; i <4; i++){
-            filePath = "inputs/board"+ to_string(i)+ ".txt";
-            game.readBoard(filePath);
-            game.run();
-        }
+                }
     } catch (const std::exception& e) {
         std::clog << e.what() << std::endl;
         return 1;

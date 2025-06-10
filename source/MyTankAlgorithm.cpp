@@ -2,11 +2,20 @@
 #include "../header/TankBattleInfo.h"
 #include "../header/Shell.h"
 
-using std::pair;
+/**
+ * @brief Constructs a MyTankAlgorithm instance with game parameters.
+ * @param player_index Index of the player that the tank will belong to.
+ * @param tank_index Index of this tank.
+ */
+MyTankAlgorithm::MyTankAlgorithm(int player_index, int tank_index) : player_index(player_index), tank_index(tank_index), battle_info(make_unique<TankBattleInfo>(tank_index,player_index)) {}
 
-MyTankAlgorithm::MyTankAlgorithm(int player_index, int tank_index) : player_index(player_index), tank_index(tank_index), battle_info(std::make_unique<TankBattleInfo>(tank_index,player_index)) {
-}
-
+/**
+ * @brief Updates the internal battle info object with the latest game state.
+ *
+ * Copies opponent data, position, direction, known objects, and shell count from the provided BattleInfo.
+ *
+ * @param info The BattleInfo object containing the current state.
+ */
 void MyTankAlgorithm::updateBattleInfo(BattleInfo& info)
 {
 	auto tank_info = dynamic_cast<TankBattleInfo&>(info);
@@ -17,6 +26,11 @@ void MyTankAlgorithm::updateBattleInfo(BattleInfo& info)
 	battle_info->setRemainingShells(tank_info.getRemainingShells());
 }
 
+/**
+ * @brief Determines and returns the next action.
+ *
+ * @return The decided ActionRequest.
+ */
 ActionRequest MyTankAlgorithm::getAction()
 {
 	ActionRequest action = decideAction();
@@ -24,7 +38,17 @@ ActionRequest MyTankAlgorithm::getAction()
 	return action;
 }
 
-std::pair<int,int> MyTankAlgorithm::nextStep(bool forward,const std::pair<int,int> pos, const Direction dir){
+/**
+ * @brief Computes the next position on the board after moving forward or backward.
+ *
+ * Applies wraparound for map edges.
+ *
+ * @param forward True to move forward, false to move backward.
+ * @param pos Current position as (row, col).
+ * @param dir Current direction.
+ * @return The new position after the step, wrapped on map edges.
+ */
+pair<int,int> MyTankAlgorithm::nextStep(bool forward,const pair<int,int> pos, const Direction dir){
     int side = forward ? 1: -1;
 	auto [h,w] = battle_info->getMapSize();
 
@@ -34,8 +58,13 @@ std::pair<int,int> MyTankAlgorithm::nextStep(bool forward,const std::pair<int,in
     return {newRow , newCol };
 }
 
-
-
+/**
+ * @brief Performs rotation of the tank's direction based on an ActionRequest.
+ *
+ * Updates internal direction state accordingly.
+ *
+ * @param action The rotation action requested.
+ */
 void MyTankAlgorithm::rotate(ActionRequest action) {
     Direction dir = battle_info->getDirection();
     switch(action) {
@@ -61,12 +90,20 @@ void MyTankAlgorithm::rotate(ActionRequest action) {
     battle_info->setDirection(dir);
 }
 
+/**
+ * @brief Checks if the requested action is valid given the current game state.
+ *
+ * Considers backward cooldowns, occupier presence, and shell availability.
+ *
+ * @param action The action to validate.
+ * @return True if action is valid, false otherwise.
+ */
 bool MyTankAlgorithm::isValidMove(ActionRequest action) {
     if (battle_info->isWaitingToReverse() && action != ActionRequest::MoveForward)
         return false;
 
-    std::pair<int,int> newPos;
-    std::pair<int,int> currPos = battle_info->getPosition();
+    pair<int,int> newPos;
+    pair<int,int> currPos = battle_info->getPosition();
     Direction currDir = battle_info->getDirection();
 
     switch (action) {
@@ -94,7 +131,7 @@ bool MyTankAlgorithm::isValidMove(ActionRequest action) {
  * @param pos Position to check.
  * @return True if the cell is free, false otherwise.
  */
-bool MyTankAlgorithm::isOccupierFree(std::pair<int, int> pos)
+bool MyTankAlgorithm::isOccupierFree(pair<int, int> pos)
 {
     return battle_info->getObjectByPosition(pos) == nullptr;
 }
@@ -105,7 +142,7 @@ bool MyTankAlgorithm::isOccupierFree(std::pair<int, int> pos)
  * @param opponentPos The opponent's position.
  * @return True if the player should shoot, false otherwise.
  */
-bool MyTankAlgorithm::shouldShootOpponent(const std::pair<int,int>& opponentPos)  {
+bool MyTankAlgorithm::shouldShootOpponent(const pair<int,int>& opponentPos)  {
 	return battle_info->getRemainingShells() > 0 &&
 	       isAlignedWithOpponent(opponentPos) &&
 	       !battle_info->isWaitingToShoot();
@@ -218,7 +255,7 @@ bool MyTankAlgorithm::willBeHitIn(int row, int col, int t) {
  * @param opponentPos Opponent's current position.
  * @return True if aligned, false otherwise.
  */
-bool MyTankAlgorithm::isAlignedWithOpponent(std::pair<int, int> opponentPos) {
+bool MyTankAlgorithm::isAlignedWithOpponent(pair<int, int> opponentPos) {
 	auto [r,c]= battle_info->getPosition();
 	return r == opponentPos.first || c == opponentPos.second;
 }
@@ -263,9 +300,16 @@ Direction MyTankAlgorithm::calculateDirection(int currRow, int currCol, int targ
 	return None; // Default to current direction if no match
 }
 
+/**
+ * @brief Returns the closest opponent based on minimal required actions.
+ *
+ * Finds the opponent that requires the fewest moves and rotations to reach.
+ *
+ * @return OppData Information about the closest opponent, or an empty opponent if none found.
+ */
 OppData MyTankAlgorithm::getClosestOpponent()
 {
-	std::vector<OppData> opponents = battle_info->getOpponents();
+	vector<OppData> opponents = battle_info->getOpponents();
 	int min_movements = 1e8;
 	int min_pos = -1;
 	int index = 0;
@@ -283,10 +327,17 @@ OppData MyTankAlgorithm::getClosestOpponent()
 	return min_pos != -1 ? opponents[min_pos] : OppData{{-1, -1}, Direction::None};;
 }
 
-
+/**
+ * @brief Calculates the estimated number of actions to reach an opponent.
+ *
+ * Estimates the total number of moves and rotations needed to reach the opponent's position and direction.
+ *
+ * @param opp The opponent data containing position and direction.
+ * @return int Estimated total actions (moves + rotations).
+ */
 int MyTankAlgorithm::calculateActionsToOpponent(const OppData& opp) {
 	auto myPos = battle_info->getPosition();
-	std::pair<int, int> oppPos = opp.opponentPos;
+	pair<int, int> oppPos = opp.opponentPos;
 
 	int dx = oppPos.first - myPos.first;
 	int dy = oppPos.second - myPos.second;
@@ -302,10 +353,10 @@ int MyTankAlgorithm::calculateActionsToOpponent(const OppData& opp) {
 	// Determine the required direction and movements
 	if (dx != 0) {
 		requiredDir = calculateDirection(myPos.first,myPos.second,oppPos.first,oppPos.second);
-		movements = std::abs(dx);
+		movements = abs(dx);
 	} else if (dy != 0) {
 		requiredDir = calculateDirection(myPos.first,myPos.second,oppPos.first,oppPos.second);
-		movements = std::abs(dy);
+		movements = abs(dy);
 	}
 
 	// Calculate rotations to face the required direction
@@ -316,6 +367,13 @@ int MyTankAlgorithm::calculateActionsToOpponent(const OppData& opp) {
 	return rotations + movements;
 }
 
+/**
+ * @brief Updates the internal info after executing an action.
+ *
+ * Handles position updates, backward cooldowns, and shell cooldowns.
+ *
+ * @param action The action that was executed.
+ */
 void MyTankAlgorithm::updateInnerInfoAfterAction(ActionRequest action)
 {
 	pair<int, int> newPos = {-1, -1};

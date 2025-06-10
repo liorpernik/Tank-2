@@ -1,16 +1,23 @@
 #include "../header/BasicTankAlgorithm.h"
 
+// Constructor initializes the tank algorithm with player and tank indices
 BasicTankAlgorithm::BasicTankAlgorithm(int player_index, int tank_index) : MyTankAlgorithm(player_index, tank_index){}
 
+/**
+ * @brief Determines the next move for the tank based on current gathered info.
+ *
+ * @return The next decided Action.
+ */
 ActionRequest BasicTankAlgorithm::decideAction() {
-	if (battle_info->getPosition()== make_pair(-1,-1)) return ActionRequest::GetBattleInfo;
-    // Periodically update battle info (every 5 turns)
+    // Request initial battle info if not yet received
+    if (battle_info->getPosition()== make_pair(-1,-1)) return ActionRequest::GetBattleInfo;
 
-    if (currentTurn - lastInfoUpdate > 3) {
-        lastInfoUpdate = currentTurn;
+    // Periodically update battle info (every 4 turns)
+    if (current_turn - last_info_update > 3) {
+        last_info_update = current_turn;
         return ActionRequest::GetBattleInfo;
     }
-    currentTurn++;
+    current_turn++;
 
     // Escape if in immediate danger
     if(willBeHitIn(battle_info->getPosition().first, battle_info->getPosition().second, 1)) {

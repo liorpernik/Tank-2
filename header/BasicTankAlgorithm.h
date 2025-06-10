@@ -8,8 +8,8 @@
 using std::pair,std::make_pair;
 
 class BasicTankAlgorithm : public MyTankAlgorithm {
-    int currentTurn = 0;
-    int lastInfoUpdate = 0;
+    int current_turn = 0;
+    int last_info_update = 0;
 
 public:
     BasicTankAlgorithm(int player_index, int tank_index);

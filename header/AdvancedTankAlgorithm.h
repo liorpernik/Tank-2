@@ -1,5 +1,5 @@
-#ifndef BTANKALGORITHM_H
-#define BTANKALGORITHM_H
+#ifndef ADVANCEDTANKALGORITHM_H
+#define ADVANCEDTANKALGORITHM_H
 #include <utility>
 #include <optional>
 #include <queue>
@@ -17,7 +17,7 @@ struct RotationOption {
     Direction newDir;
   };
 
-class BTankAlgorithm : public MyTankAlgorithm {
+class AdvancedTankAlgorithm : public MyTankAlgorithm {
 
   vector<ActionRequest> rotations = {ActionRequest::RotateLeft45,ActionRequest::RotateLeft90, ActionRequest::RotateRight45, ActionRequest::RotateRight90};
   int countOpenSpaceInDirection(pair<int,int> pos);
@@ -26,18 +26,18 @@ class BTankAlgorithm : public MyTankAlgorithm {
   bool canShootAfterRotate(Direction targetDir, OppData& opp);
   bool shouldShootOpponent(OppData& opp);
   Direction simulateRotation(ActionRequest act);
-  ActionRequest decideAction();
+  ActionRequest decideAction() override;
   void moveKnownShells();
   public:
-  BTankAlgorithm(int player_index, int tank_index);
-  ~BTankAlgorithm() override = default;
+  AdvancedTankAlgorithm(int player_index, int tank_index);
+  ~AdvancedTankAlgorithm() override = default;
 
-  BTankAlgorithm(const BTankAlgorithm&) = delete;
-  BTankAlgorithm& operator=(const BTankAlgorithm&) = delete;
+  AdvancedTankAlgorithm(const AdvancedTankAlgorithm&) = delete;
+  AdvancedTankAlgorithm& operator=(const AdvancedTankAlgorithm&) = delete;
 
   // void updateBattleInfo(BattleInfo& battleInfo) override;
 
   ActionRequest getAction() override;
 };
 
-#endif //BTANKALGORITHM_H
+#endif
