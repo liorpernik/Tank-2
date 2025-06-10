@@ -18,7 +18,6 @@ public:
     BasicTankAlgorithm(const BasicTankAlgorithm&) = delete;
     BasicTankAlgorithm& operator=(const BasicTankAlgorithm&) = delete;
 
-    //ActionRequest getAction() override;
     ActionRequest decideAction() override;
 };
 

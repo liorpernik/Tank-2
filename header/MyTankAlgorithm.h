@@ -10,10 +10,11 @@
 using std::pair,std::vector,std::abs,std::make_unique,std::unique_ptr;
 
 class MyTankAlgorithm : public TankAlgorithm {
+
+protected:
     int player_index;
     int tank_index;
 
-protected:
     unique_ptr<TankBattleInfo> battle_info;
     pair<int,int> nextStep(bool forward,const pair<int,int> pos, const Direction dir);
     ActionRequest determineRotation(Direction currentDir, Direction desiredDir);
@@ -41,14 +42,11 @@ public:
     MyTankAlgorithm(int player_index, int tank_index);
     ~MyTankAlgorithm() override = default;
     ActionRequest getAction() override;
-    virtual ActionRequest decideAction(){return ActionRequest::DoNothing;}
+    virtual ActionRequest decideAction() { return ActionRequest::DoNothing; }
 
     void updateBattleInfo(BattleInfo& info) override;
     int getTankId() const{return tank_index;}
     int getOwnerId() const{return player_index;}
 
-    // private:
-//
-//     ActionRequest decideNextAction();
 };
 #endif //MYTANKALGORITHM_H

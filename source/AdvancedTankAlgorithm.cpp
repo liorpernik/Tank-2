@@ -25,10 +25,16 @@ ActionRequest AdvancedTankAlgorithm::getAction()
 ActionRequest AdvancedTankAlgorithm::decideAction() {
 	auto [currentRow, currentCol] = battle_info->getPosition();
 
+	++current_turn;
+
 	OppData opp = getClosestOpponent();
-	if (opp.opponentPos == make_pair(-1,-1)) return ActionRequest::GetBattleInfo;
+	if (opp.opponentPos == make_pair(-1,-1)) {
+          last_info_update = current_turn;
+          return ActionRequest::GetBattleInfo;
+    }
 
 	auto [targetRow, targetCol] = opp.opponentPos;
+    opp.opponentDir = opp.opponentDir == None ? battle_info->calculateRealDirection(currentRow, currentCol, targetRow, targetCol) :  opp.opponentDir;
 
 	Direction currentDir = battle_info->getDirection();
 	Direction desiredDir = calculateDirection(currentRow, currentCol, targetRow, targetCol);
@@ -55,6 +61,11 @@ ActionRequest AdvancedTankAlgorithm::decideAction() {
 				return res;
 		}
 	}
+
+    if(current_turn - last_info_update > tank_index + 3){
+      last_info_update = current_turn;
+      return ActionRequest::GetBattleInfo;
+    }
 
     // Shoot if aligned and safe
     if (shouldShootOpponent(opp)) {
@@ -256,7 +267,7 @@ void AdvancedTankAlgorithm::moveKnownShells()
 
 	for (auto& [pos, objs] : knownObj)
 	{
-		for (auto it = objs.begin(); it != objs.end(); ++it)
+		for (auto it = objs.begin(); it != objs.end();)
 		{
 			auto obj = *it;
 			if (obj->getSymbol() == '*')
@@ -277,6 +288,7 @@ void AdvancedTankAlgorithm::moveKnownShells()
 					continue;
 				}
 			}
+			++it;
 		}
 	}
 }

@@ -484,6 +484,8 @@ void GameManager::logGameResult() {
 	} else {
 		logs.push_back("Tie, both players have zero tanks");
 	}
+
+	cerr << logs[logs.size()-1] << endl;
 }
 
 /**

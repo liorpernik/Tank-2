@@ -78,31 +78,33 @@ void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
                 continue;
             }
             vector<GameObject*> vec = knownObjects[pos];
-            if (vec.empty())
-            {
-                unique_ptr<GameObject> obj;
-                if (symbol == '@')
-                {
-                    obj = make_unique<Mine>(pos);
-                }else if (symbol == '#')
-                {
-                    obj = make_unique<Wall>(pos);
-                }else if (symbol == '*'){
-                    obj = make_unique<Shell>(pos, None, -1);
-                }else if (isdigit(symbol)){
-                    int player = symbol - '0';
-                    obj = make_unique<Tank>(pos,player_index == 1 ? tanki_1++ : tanki_2++,Direction::None,player_index,shells_per_tank);
-                    if (player != player_index)
-                    {
-                        opponents.push_back(OppData(pos));
-                    }
-                }
-                knownObjects[pos].push_back(obj.get());
-                objectStorage.push_back(move(obj));
-            }else if (vec.size() > 1 && (symbol == '@' || symbol == '#'))
-            {
-                vec.erase(vec.end() - 1);
-            }
+
+           if (vec.size() > 1 && (symbol == '@' || symbol == '#'))
+           {
+               vec.erase(vec.end() - 1);
+
+           }else
+           {
+               unique_ptr<GameObject> obj;
+               if (symbol == '@')
+               {
+                   obj = make_unique<Mine>(pos);
+               }else if (symbol == '#')
+               {
+                   obj = make_unique<Wall>(pos);
+               }else if (symbol == '*'){
+                   obj = make_unique<Shell>(pos, None, -1);
+               }else if (isdigit(symbol)){
+                   int player = symbol - '0';
+                   obj = make_unique<Tank>(pos,player_index == 1 ? tanki_1++ : tanki_2++,Direction::None,player,shells_per_tank);
+                   if (player != player_index)
+                   {
+                       opponents.push_back(OppData(pos));
+                   }
+               }
+               knownObjects[pos].push_back(obj.get());
+               objectStorage.push_back(move(obj));
+           }
        }
    }
 

@@ -9,15 +9,19 @@ BasicTankAlgorithm::BasicTankAlgorithm(int player_index, int tank_index) : MyTan
  * @return The next decided Action.
  */
 ActionRequest BasicTankAlgorithm::decideAction() {
+   current_turn++;
+
     // Request initial battle info if not yet received
-    if (battle_info->getPosition()== make_pair(-1,-1)) return ActionRequest::GetBattleInfo;
+    if (battle_info->getPosition()== make_pair(-1,-1)) {
+      last_info_update = current_turn;
+      return ActionRequest::GetBattleInfo;
+    }
 
     // Periodically update battle info (every 4 turns)
     if (current_turn - last_info_update > 3) {
         last_info_update = current_turn;
         return ActionRequest::GetBattleInfo;
     }
-    current_turn++;
 
     // Escape if in immediate danger
     if(willBeHitIn(battle_info->getPosition().first, battle_info->getPosition().second, 1)) {

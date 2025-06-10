@@ -19,6 +19,9 @@ struct RotationOption {
 
 class AdvancedTankAlgorithm : public MyTankAlgorithm {
 
+  int current_turn = 0;
+  int last_info_update = 0;
+
   vector<ActionRequest> rotations = {ActionRequest::RotateLeft45,ActionRequest::RotateLeft90, ActionRequest::RotateRight45, ActionRequest::RotateRight90};
   int countOpenSpaceInDirection(pair<int,int> pos);
   RotationOption rotationOption(ActionRequest rotation, Direction newDir,Direction oldDir );
@@ -28,14 +31,13 @@ class AdvancedTankAlgorithm : public MyTankAlgorithm {
   Direction simulateRotation(ActionRequest act);
   ActionRequest decideAction() override;
   void moveKnownShells();
+
   public:
   AdvancedTankAlgorithm(int player_index, int tank_index);
   ~AdvancedTankAlgorithm() override = default;
 
   AdvancedTankAlgorithm(const AdvancedTankAlgorithm&) = delete;
   AdvancedTankAlgorithm& operator=(const AdvancedTankAlgorithm&) = delete;
-
-  // void updateBattleInfo(BattleInfo& battleInfo) override;
 
   ActionRequest getAction() override;
 };
