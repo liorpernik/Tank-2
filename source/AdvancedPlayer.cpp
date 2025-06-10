@@ -1,11 +1,11 @@
-#include "../header/BPlayer.h"
+#include "../header/AdvancedPlayer.h"
 #include "../header/Shell.h"
 
 /**
- * Constructor for BPlayer.
+ * Constructor for AdvancedPlayer.
  * Initializes the player with map size, max steps, and number of shells.
  */
-BPlayer::BPlayer(int player_index, size_t map_width, size_t map_height,
+AdvancedPlayer::AdvancedPlayer(int player_index, size_t map_width, size_t map_height,
              size_t max_steps, size_t num_shells) : MyPlayer(player_index, map_width, map_height,max_steps,num_shells) {
  }
 
@@ -15,7 +15,7 @@ BPlayer::BPlayer(int player_index, size_t map_width, size_t map_height,
  * @param tank The tank algorithm instance to update.
  * @param view The satellite view containing the latest battlefield info.
  */
-void BPlayer::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view)  {
+void AdvancedPlayer::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view)  {
     auto knownShells = getShellsFromKnownObjects();
     getBattleInfoFromSatelliteView(view);
 
@@ -31,7 +31,7 @@ void BPlayer::updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view)
  *
  * @param knownShells Vector of pointers to known Shell objects.
  */
-void BPlayer::calcShellsDirection(vector<Shell*> knownShells) {
+void AdvancedPlayer::calcShellsDirection(vector<Shell*> knownShells) {
 
 	int steps_passed = 2*(last_battleInfo_step - steps_left);
 	vector<pair<int,int>> candidates;
@@ -83,7 +83,7 @@ void BPlayer::calcShellsDirection(vector<Shell*> knownShells) {
  *
  * @return Vector of Shell pointers representing all known shells.
  */
-vector<Shell*> BPlayer::getShellsFromKnownObjects() {
+vector<Shell*> AdvancedPlayer::getShellsFromKnownObjects() {
     auto knownObj = dynamic_cast<TankBattleInfo*>(battle_info.get())->getKnownObjects();
     vector<Shell*> shells;
 
