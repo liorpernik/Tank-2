@@ -380,7 +380,7 @@ void GameManager::updateTanksInfo(vector<Tank*> tanks) {
 		tankPtr= findTankAlgorithmById(tank);
 		index=getTankIndex(tankPtr);
 		player_tanks_pos[tank->getOwnerId()][index]=tank->getPos();  // {-1,-1} if killed
-		if (tank->isDestroyed())
+		if (tank->isKilledThisRound())
 			--player_tank_count[tank->getOwnerId()];
 		if (tank->getLastAction()==ActionRequest::Shoot)
 			--player_shell_count[tank->getOwnerId()];

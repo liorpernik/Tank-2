@@ -26,7 +26,7 @@ void BoardManager::printBoard()
         for (int j = 0; j < width; ++j)
         {
             GameObject* obj = getObjectAt(i,j);
-            obj != nullptr ? boardState << obj->getSymbol() : boardState << ' ';
+            obj != nullptr && !obj->isDestroyed()? boardState << obj->getSymbol() : boardState << ' ';
         }
         boardState << "\n";
     }
@@ -329,8 +329,7 @@ void BoardManager::boardCleanup()
  */
 void BoardManager::cleanupDestroyedObjects(pair<int,int> pos) {
     auto& cell = game_map[pos.first][pos.second];
-    cell.erase(remove_if(cell.begin(), cell.end(),[](const unique_ptr<GameObject>& obj) {return obj && obj->isDestroyed()&& obj->getSymbol()!='T';}),cell.end()); // releases ptr automaticly when erasing.
-    //todo - check tank logging -> when hit, disappears from log next round instead of remaining 'killed'
+    cell.erase(remove_if(cell.begin(), cell.end(),[](const unique_ptr<GameObject>& obj) {return obj && obj->isDestroyed()&& !(obj->getSymbol()!='2'||obj->getSymbol()!='1');}),cell.end()); // releases ptr automaticly when erasing.
 }
 
 /**

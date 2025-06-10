@@ -90,7 +90,7 @@ bool Tank::isDestroyed () const {
 
 /**
  * @brief Returns the symbol representing the tank.
- * @return Character symbol for the tank - 'T'.
+ * @return Character symbol for the tank - '1' or '2'.
  */
 char Tank::getSymbol() const {
     return ownerId + '0'; // Using
