@@ -59,7 +59,7 @@ public:
     pair<int, int> getPosition() const;
 
     vector<OppData> getOpponents() const;
-    // OppData* getOpponentById(int id) const;
+
     void setOpponents(vector<OppData> opps);
     void addOpponent(pair<int,int> position, Direction dir = None);
 

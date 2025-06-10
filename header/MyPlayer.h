@@ -29,7 +29,6 @@ public:
 	MyPlayer& operator=(const MyPlayer&) = delete;
 
     void updateTankWithBattleInfo(TankAlgorithm& tank, SatelliteView& view) override;
-	// void addTank(unique_ptr<TankAlgorithm>& tank);
 	int getPlayerIndex() const;
 	void updateStepsLeft();
 

@@ -34,7 +34,6 @@ class BoardManager  {
 
     void printBoard();
     void writeBoardStates(string);
-    //int wrap(int value, int size) const { return (value % size + size) % size; }
 
 
   void updateMap(unique_ptr<GameObject> obj,pair<int,int> new_pos);
