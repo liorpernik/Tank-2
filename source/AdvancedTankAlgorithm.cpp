@@ -39,9 +39,6 @@ ActionRequest AdvancedTankAlgorithm::decideAction() {
 	Direction currentDir = battle_info->getDirection();
 	Direction desiredDir = calculateDirection(currentRow, currentCol, targetRow, targetCol);
 
-	if(!battle_info->isWaitingToReverse() && battle_info->getWaitingForBackward())
-		return ActionRequest::MoveBackward;
-
 	// Try to dodge danger
 	if (willBeHitIn(battle_info->getPosition().first,battle_info->getPosition().second,1)) {
 		ActionRequest res= checkForEscape();
@@ -68,11 +65,12 @@ ActionRequest AdvancedTankAlgorithm::decideAction() {
     }
 
     // Shoot if aligned and safe
-    if (shouldShootOpponent(opp)) {
-        return !battle_info->isWaitingToShoot() ? ActionRequest::Shoot : ActionRequest::GetBattleInfo;
+    if (shouldShootOpponent(opp) && !battle_info->isWaitingToShoot()) {
+        return  ActionRequest::Shoot;
     }
+
     if (currentDir != desiredDir) {
-         ActionRequest rotate= determineRotation(currentDir, desiredDir);
+         ActionRequest rotate = determineRotation(currentDir, desiredDir);
          RotationOption option = rotationOption(rotate, desiredDir, currentDir);
          if((option.canMove || canShootAfterRotate(desiredDir, opp)) && option.safetyScore > 0)
          	return rotate;
@@ -252,12 +250,6 @@ int AdvancedTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
   }
 
 
-// void AdvancedTankAlgorithm::updateBattleInfo(BattleInfo& battleInfo)
-// {
-// 	battle_info->setDirection(dynamic_cast<TankBattleInfo*>(&battleInfo)->getDirection());
-// }
-
-//todo:check
 /**
  * @brief Updates the positions of known shell objects on the map.
  *
@@ -267,6 +259,7 @@ int AdvancedTankAlgorithm::countOpenSpaceInDirection(pair<int,int> pos) {
 void AdvancedTankAlgorithm::moveKnownShells()
 {
 	auto knownObj = battle_info->getKnownObjects();
+	auto copyKnownObj = battle_info->getKnownObjects();
 	vector<pair<int,int>> pos_to_del;
 
 	for (auto& [pos, objs] : knownObj){
@@ -283,8 +276,8 @@ void AdvancedTankAlgorithm::moveKnownShells()
 					newPos = nextStep(true, newPos, shell->getDirection());
 
 					// Record the move (old position, new position, object)
-					knownObj[newPos].push_back(obj);
 					obj->setPos(newPos); // Update the object's position
+					copyKnownObj[newPos].push_back(obj);
 
 					// Remove from current position (safe because we're using the iterator)
 					it = objs.erase(it);
@@ -297,8 +290,8 @@ void AdvancedTankAlgorithm::moveKnownShells()
 	}
 
     for(auto pos : pos_to_del) {
-      knownObj.erase(pos);
+      copyKnownObj.erase(pos);
     }
 
-    battle_info->setKnownObjects(knownObj);
+    battle_info->setKnownObjects(copyKnownObj);
 }

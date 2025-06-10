@@ -68,7 +68,7 @@ void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
            }
            if (symbol == '%'){
                tank_info->setPosition(i,j);
-               break;
+               continue;
            }
             pair pos = {i,j};
 
@@ -82,7 +82,6 @@ void MyPlayer::getBattleInfoFromSatelliteView(SatelliteView& view)
            if (vec.size() > 1 && (symbol == '@' || symbol == '#'))
            {
                knownObjects[pos].erase(knownObjects[pos].end() - 1);
-               if (knownObjects[pos].empty()) knownObjects.erase(pos);
            }else
            {
                unique_ptr<GameObject> obj;
