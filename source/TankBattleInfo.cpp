@@ -14,36 +14,36 @@ TankBattleInfo::TankBattleInfo(int tank_index, int player_index) : id(tank_index
 /**
  * @brief Set the cooldown until backward movement can occur.
  */
-void TankBattleInfo::setBackwardCooldown(int cooldown){ backward_cooldown = cooldown; }
+void TankBattleInfo::setBackwardCooldown(int cooldown) { backward_cooldown = cooldown; }
 
 /**
  * @brief Set whether the tank is waiting for a delayed backward movement.
  */
-void TankBattleInfo::setWaitingForBackward(bool is_waiting){ is_waiting_for_backward = is_waiting; }
+void TankBattleInfo::setWaitingForBackward(bool is_waiting) { is_waiting_for_backward = is_waiting; }
 
 /**
  * @brief Get whether the tank is waiting for a delayed backward movement.
  */
-bool TankBattleInfo::getWaitingForBackward(){ return is_waiting_for_backward; }
+bool TankBattleInfo::getWaitingForBackward() { return is_waiting_for_backward; }
 
 /**
  * @brief Mark if the tank moved backward on its last action.
  */
-void TankBattleInfo::setMovedBackwardLast(bool moved){ moved_backward_last = moved; }
+void TankBattleInfo::setMovedBackwardLast(bool moved) { moved_backward_last = moved; }
 
 /**
  * @brief Check if the tank moved backward last turn.
  */
-bool TankBattleInfo::getMovedBackwardLast(){ return moved_backward_last; }
+bool TankBattleInfo::getMovedBackwardLast() { return moved_backward_last; }
 
 /**
  * @brief Set the cooldown until the tank can shoot again.
  */
-void TankBattleInfo::setShootCooldown(int cooldown){ shoot_cooldown = cooldown; }
+void TankBattleInfo::setShootCooldown(int cooldown) { shoot_cooldown = cooldown; }
 
 /**
  * @brief Returns whether the tank is currently in a shooting cooldown.
-*/
+ */
 bool TankBattleInfo::isWaitingToShoot() const { return shoot_cooldown > 0; }
 
 /**
@@ -54,12 +54,16 @@ bool TankBattleInfo::isWaitingToReverse() const { return is_waiting_for_backward
 /**
  * @brief Decrease the remaining number of shells by 1.
  */
-void TankBattleInfo::decreaseRemainingShells(){ --remaining_shells; }
+void TankBattleInfo::decreaseRemainingShells() { --remaining_shells; }
 
 /**
  * @brief Set the number of remaining shells.
  */
-void TankBattleInfo::setRemainingShells(int num_of_shells) { remaining_shells = num_of_shells; set_shells = true; }
+void TankBattleInfo::setRemainingShells(int num_of_shells)
+{
+    remaining_shells = num_of_shells;
+    set_shells = true;
+}
 
 /**
  * @brief Get the current number of remaining shells.
@@ -69,12 +73,12 @@ int TankBattleInfo::getRemainingShells() const { return remaining_shells; }
 /**
  * @brief Check if the number of shells has been initialized.
  */
-bool TankBattleInfo::isShellsSet() const {return  set_shells;}
+bool TankBattleInfo::isShellsSet() const { return set_shells; }
 
 /**
  * @brief Set the tank's facing direction.
  */
-void TankBattleInfo::setDirection(Direction dir){ direction = dir; }
+void TankBattleInfo::setDirection(Direction dir) { direction = dir; }
 
 /**
  * @brief Get the current direction the tank is facing.
@@ -84,7 +88,11 @@ Direction TankBattleInfo::getDirection() const { return direction; }
 /**
  * @brief Set the tank's current position.
  */
-void TankBattleInfo::setPosition(int x, int y){ position.first = x; position.second = y; }
+void TankBattleInfo::setPosition(int x, int y)
+{
+    position.first = x;
+    position.second = y;
+}
 
 /**
  * @brief Get the tank's current position.
@@ -107,7 +115,7 @@ void TankBattleInfo::setOpponents(vector<OppData> opps) { opponents = opps; }
  * @param position Opponent's position.
  * @param dir Opponent's direction.
  */
-void TankBattleInfo::addOpponent(pair<int,int> position, Direction dir)
+void TankBattleInfo::addOpponent(pair<int, int> position, Direction dir)
 {
     opponents.emplace_back(OppData(make_pair(position.first, position.second), dir));
 }
@@ -117,7 +125,7 @@ void TankBattleInfo::addOpponent(pair<int,int> position, Direction dir)
  *
  * If two objects exist at that position, returns the second. Otherwise, the first.
  */
-GameObject* TankBattleInfo::getObjectByPosition(pair<int,int> pos) const
+GameObject *TankBattleInfo::getObjectByPosition(pair<int, int> pos) const
 {
     return knownObjects.contains(pos) && !knownObjects.at(pos).empty() ? knownObjects.at(pos).size() > 1 ? knownObjects.at(pos)[1] : knownObjects.at(pos)[0] : nullptr;
 }
@@ -125,7 +133,7 @@ GameObject* TankBattleInfo::getObjectByPosition(pair<int,int> pos) const
 /**
  * @brief Get a map of all known objects indexed by their position.
  */
-map<pair<int, int>, vector<GameObject*>> TankBattleInfo::getKnownObjects() const
+map<pair<int, int>, vector<GameObject *>> TankBattleInfo::getKnownObjects() const
 {
     return knownObjects;
 }
@@ -133,7 +141,7 @@ map<pair<int, int>, vector<GameObject*>> TankBattleInfo::getKnownObjects() const
 /**
  * @brief Replace the current known objects map with a new one.
  */
-void TankBattleInfo::setKnownObjects(map<pair<int, int>, vector<GameObject*>> newKnownObjects)
+void TankBattleInfo::setKnownObjects(map<pair<int, int>, vector<GameObject *>> newKnownObjects)
 {
     knownObjects = move(newKnownObjects);
 }
@@ -143,7 +151,7 @@ void TankBattleInfo::setKnownObjects(map<pair<int, int>, vector<GameObject*>> ne
  */
 void TankBattleInfo::setMapSize(int h, int w)
 {
-    map_size = make_pair(h,w);
+    map_size = make_pair(h, w);
 }
 
 /**
@@ -160,16 +168,17 @@ pair<int, int> TankBattleInfo::getMapSize() const
  * @param pos The position to check.
  * @param dir The direction to set on the Shell object.
  */
-void TankBattleInfo::updateObjectDirByPosition(pair<int,int> pos, Direction dir)
+void TankBattleInfo::updateObjectDirByPosition(pair<int, int> pos, Direction dir)
 {
     if (!knownObjects[pos].empty())
     {
         if (knownObjects[pos].size() > 1 && knownObjects[pos][1]->getSymbol() == '*')
         {
-            dynamic_cast<Shell*>(knownObjects[pos][1])->setDirection(dir);
-        }else if (knownObjects[pos][0]->getSymbol() == '*')
+            dynamic_cast<Shell *>(knownObjects[pos][1])->setDirection(dir);
+        }
+        else if (knownObjects[pos][0]->getSymbol() == '*')
         {
-            dynamic_cast<Shell*>(knownObjects[pos][0])->setDirection(dir);
+            dynamic_cast<Shell *>(knownObjects[pos][0])->setDirection(dir);
         }
     }
 }
@@ -183,19 +192,28 @@ void TankBattleInfo::updateObjectDirByPosition(pair<int,int> pos, Direction dir)
  * @param targetCol Target column.
  * @return Direction representing the alignment (strict cardinal or diagonal), or None if unaligned.
  */
-Direction TankBattleInfo::calculateRealDirection(int currRow, int currCol, int targetRow, int targetCol) {
+Direction TankBattleInfo::calculateRealDirection(int currRow, int currCol, int targetRow, int targetCol)
+{
     int rowDiff = targetRow - currRow;
     int colDiff = targetCol - currCol;
 
     // Normalize differences to identify direction only if strictly aligned
-    if (rowDiff > 0 && colDiff == 0) return Direction::D;    // Down
-    if (rowDiff < 0 && colDiff == 0) return Direction::U;    // Up
-    if (rowDiff == 0 && colDiff > 0) return Direction::R;    // Right
-    if (rowDiff == 0 && colDiff < 0) return Direction::L;    // Left
-    if (rowDiff == colDiff && rowDiff > 0) return Direction::DR; // Down-Right (strict diagonal)
-    if (rowDiff == -colDiff && rowDiff > 0) return Direction::DL; // Down-Left (strict diagonal)
-    if (rowDiff == colDiff && rowDiff < 0) return Direction::UR; // Up-Right (strict diagonal)
-    if (rowDiff == -colDiff && rowDiff < 0) return Direction::UL; // Up-Left (strict diagonal)
+    if (rowDiff > 0 && colDiff == 0)
+        return Direction::D; // Down
+    if (rowDiff < 0 && colDiff == 0)
+        return Direction::U; // Up
+    if (rowDiff == 0 && colDiff > 0)
+        return Direction::R; // Right
+    if (rowDiff == 0 && colDiff < 0)
+        return Direction::L; // Left
+    if (rowDiff == colDiff && rowDiff > 0)
+        return Direction::DR; // Down-Right (strict diagonal)
+    if (rowDiff == -colDiff && rowDiff > 0)
+        return Direction::DL; // Down-Left (strict diagonal)
+    if (rowDiff == colDiff && rowDiff < 0)
+        return Direction::UR; // Up-Right (strict diagonal)
+    if (rowDiff == -colDiff && rowDiff < 0)
+        return Direction::UL; // Up-Left (strict diagonal)
 
     return Direction::None; // None for non-aligned movement
 }

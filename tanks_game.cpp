@@ -24,12 +24,12 @@ int main(int argc, char** argv)
 
         auto playerFactory = std::make_unique<MyPlayerFactory>();
         auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
-        for(int i=1;i<16;++i){
+        for(int i=5;i<6;++i){
             std::cout <<"test "<<i <<"\n";
 
             auto playerFactory = std::make_unique<MyPlayerFactory>();
             auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
-            filePath = "C:\\Users\\liorp\\Documents\\Uni_HW\\Cpp\\HW2\\Tank-2\\inputs\\t" + to_string(i) + ".txt";
+            filePath = "./inputs/t" + to_string(i) + ".txt";
             GameManager game(std::move(playerFactory), std::move(tankFactory));
             game.readBoard(filePath);
             game.run();

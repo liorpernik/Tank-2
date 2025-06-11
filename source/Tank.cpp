@@ -9,15 +9,16 @@
  * @param owner The player ID that owns this tank.
  * @param num_of_shells The number of shells the tank has at the beginning.
  */
-Tank::Tank (pair<int,int> pos,int tank_index,  Direction dir, int owner, int num_of_shells)
-    : GameObject(pos), tank_index(tank_index), direction (dir), ownerId (owner), destroyed(false), remaining_shells(num_of_shells) {}
+Tank::Tank(pair<int, int> pos, int tank_index, Direction dir, int owner, int num_of_shells)
+    : GameObject(pos), tank_index(tank_index), direction(dir), ownerId(owner), destroyed(false), remaining_shells(num_of_shells) {}
 
 /**
  * @brief Returns the current direction the tank is facing.
  *
  * @return Direction The direction enum value.
  */
-Direction Tank::getDirection() const {
+Direction Tank::getDirection() const
+{
     return direction;
 }
 
@@ -26,7 +27,8 @@ Direction Tank::getDirection() const {
  *
  * @param dir The new direction.
  */
-void Tank::setDirection(Direction dir) {
+void Tank::setDirection(Direction dir)
+{
     direction = dir;
 }
 
@@ -35,7 +37,8 @@ void Tank::setDirection(Direction dir) {
  *
  * @return int The owner's ID.
  */
-int Tank::getOwnerId() const {
+int Tank::getOwnerId() const
+{
     return ownerId;
 }
 
@@ -45,27 +48,30 @@ int Tank::getOwnerId() const {
  * This method only responds to rotation actions. Other actions are ignored.
  *
  * @param action The ActionRequest enum (e.g., RotateLeft45, RotateRight90, etc.).
- */void Tank::rotate(ActionRequest action) {
+ */
+void Tank::rotate(ActionRequest action)
+{
 
-    switch(action) {
-        case ActionRequest::RotateLeft45:
-            direction = static_cast<Direction>((direction + 7) % 8); // move 1 counter-clockwise
+    switch (action)
+    {
+    case ActionRequest::RotateLeft45:
+        direction = static_cast<Direction>((direction + 7) % 8); // move 1 counter-clockwise
         break;
-        case ActionRequest::RotateRight45:
-            direction = static_cast<Direction>((direction + 1) % 8); // move 1 clockwise
+    case ActionRequest::RotateRight45:
+        direction = static_cast<Direction>((direction + 1) % 8); // move 1 clockwise
         break;
-        case ActionRequest::RotateLeft90:
-            direction = static_cast<Direction>((direction + 6) % 8); // move 2 clockwise
+    case ActionRequest::RotateLeft90:
+        direction = static_cast<Direction>((direction + 6) % 8); // move 2 clockwise
         break;
-        case ActionRequest::RotateRight90:
-            direction = static_cast<Direction>((direction + 2) % 8); // move 2 counter-clockwise
+    case ActionRequest::RotateRight90:
+        direction = static_cast<Direction>((direction + 2) % 8); // move 2 counter-clockwise
         break;
-        case ActionRequest::MoveForward:
-            case ActionRequest::MoveBackward:
-        case ActionRequest::Shoot:
-        case ActionRequest::DoNothing:
-        case ActionRequest::GetBattleInfo:
-            break;
+    case ActionRequest::MoveForward:
+    case ActionRequest::MoveBackward:
+    case ActionRequest::Shoot:
+    case ActionRequest::DoNothing:
+    case ActionRequest::GetBattleInfo:
+        break;
     }
 }
 
@@ -74,9 +80,10 @@ int Tank::getOwnerId() const {
  *
  * Also sets `killed_this_round` to true.
  */
-void Tank::destroy() {
-    destroyed=true;
-    killed_this_round=true;
+void Tank::destroy()
+{
+    destroyed = true;
+    killed_this_round = true;
 }
 
 /**
@@ -84,7 +91,8 @@ void Tank::destroy() {
  *
  * @return true if destroyed, false otherwise.
  */
-bool Tank::isDestroyed () const {
+bool Tank::isDestroyed() const
+{
     return destroyed;
 }
 
@@ -92,7 +100,8 @@ bool Tank::isDestroyed () const {
  * @brief Returns the symbol representing the tank.
  * @return Character symbol for the tank - '1' or '2'.
  */
-char Tank::getSymbol() const {
+char Tank::getSymbol() const
+{
     return ownerId + '0';
 }
 
@@ -101,7 +110,8 @@ char Tank::getSymbol() const {
  *
  * @param shells Number of shells to set.
  */
-void Tank::setNumOfShells(int shells){
+void Tank::setNumOfShells(int shells)
+{
     remaining_shells = shells;
 }
 
@@ -110,7 +120,8 @@ void Tank::setNumOfShells(int shells){
  *
  * @return int Number of remaining shells.
  */
-int Tank::getNumOfRemainingShells() const{
+int Tank::getNumOfRemainingShells() const
+{
     return remaining_shells;
 }
 
@@ -119,7 +130,7 @@ int Tank::getNumOfRemainingShells() const{
  *
  * @param cooldown Number of turns to wait before next shot.
  */
-void  Tank::setShootCooldown(int cooldown)
+void Tank::setShootCooldown(int cooldown)
 {
     shoot_cooldown = cooldown;
 }
@@ -129,7 +140,7 @@ void  Tank::setShootCooldown(int cooldown)
  *
  * @return int Number of turns remaining until the tank can shoot.
  */
-int  Tank::getShootCooldown() const
+int Tank::getShootCooldown() const
 {
     return shoot_cooldown;
 }
@@ -139,7 +150,7 @@ int  Tank::getShootCooldown() const
  *
  * @param cooldown Number of steps before another backward action is allowed.
  */
-void  Tank::setBackwardCooldown(int cooldown)
+void Tank::setBackwardCooldown(int cooldown)
 {
     backward_cooldown = cooldown;
 }
@@ -149,7 +160,7 @@ void  Tank::setBackwardCooldown(int cooldown)
  *
  * @return int Number of turns remaining before backward can be used.
  */
-int  Tank::getBackwardCooldown() const
+int Tank::getBackwardCooldown() const
 {
     return backward_cooldown;
 }

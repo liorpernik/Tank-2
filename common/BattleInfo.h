@@ -1,9 +1,9 @@
 #ifndef BATTLEINFO_H
 #define BATTLEINFO_H
-class BattleInfo {
+class BattleInfo
+{
 public:
     virtual ~BattleInfo() {}
 };
 
-
-#endif //BATTLEINFO_H
+#endif // BATTLEINFO_H

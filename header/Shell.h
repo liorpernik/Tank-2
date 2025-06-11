@@ -3,18 +3,20 @@
 #include "../common/GameObject.h"
 using std::pair;
 
-class Shell : public GameObject {
+class Shell : public GameObject
+{
     Direction direction;
     int ownerId;
     bool destroyed;
     static const char SHELL_SYMBOL = '*';
+
 public:
     // Constructor
-    Shell(pair<int,int> pos, Direction dir, int owner);
-    ~Shell() override= default;
+    Shell(pair<int, int> pos, Direction dir, int owner);
+    ~Shell() override = default;
 
-    Shell(Shell const&) = delete;
-    Shell& operator=(const Shell&) = delete;
+    Shell(Shell const &) = delete;
+    Shell &operator=(const Shell &) = delete;
 
     // Accessors
     Direction getDirection() const;
@@ -28,6 +30,5 @@ public:
 
     // Symbol for representation on the board
     char getSymbol() const override;
-
 };
-#endif //SHELL_H
+#endif // SHELL_H

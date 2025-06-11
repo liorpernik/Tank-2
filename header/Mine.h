@@ -3,18 +3,19 @@
 #include "../common/GameObject.h"
 using std::pair;
 
-class Mine : public GameObject {
+class Mine : public GameObject
+{
 private:
     bool triggered = false;
     bool destroyed = false;
     static const char MINE_SYMBOL = '@'; // Assuming this is the intended symbol
 
 public:
-    Mine(pair<int,int> pos);
-    ~Mine() override= default;
+    Mine(pair<int, int> pos);
+    ~Mine() override = default;
 
-    Mine(Mine const&) = delete;
-    Mine& operator=(const Mine&) = delete;
+    Mine(Mine const &) = delete;
+    Mine &operator=(const Mine &) = delete;
 
     void trigger();
     bool isTriggered() const;
@@ -22,4 +23,4 @@ public:
     bool isDestroyed() const override;
     char getSymbol() const override;
 };
-#endif //MINE_H
+#endif // MINE_H

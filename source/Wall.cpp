@@ -12,21 +12,24 @@ Wall::Wall(pair<int, int> pos) : GameObject(pos) {}
  *
  * @return Number of registered hits.
  */
-int Wall::getHitCount() const {
+int Wall::getHitCount() const
+{
     return hitCount;
 }
 
 /**
  * @brief Registers a hit to the wall, incrementing the hit counter.
  */
-void Wall::registerHit() {
+void Wall::registerHit()
+{
     hitCount++;
 }
 
 /**
  * @brief Marks the wall as destroyed manually.
  */
-void Wall::destroy() {
+void Wall::destroy()
+{
     destroyed = true;
 }
 
@@ -35,7 +38,8 @@ void Wall::destroy() {
  *
  * @return True if hit count has reached the maximum allowed; false otherwise.
  */
-bool Wall::isDestroyed() const {
+bool Wall::isDestroyed() const
+{
     return hitCount >= WALL_MAX_HITS;
 }
 
@@ -43,6 +47,7 @@ bool Wall::isDestroyed() const {
  * @brief Returns the symbol representing the wall.
  * @return Character symbol for the wall - '#'.
  */
-char Wall::getSymbol() const {
+char Wall::getSymbol() const
+{
     return WALL_SYMBOL;
 }

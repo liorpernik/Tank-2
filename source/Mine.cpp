@@ -4,12 +4,13 @@
  * @brief Constructs a Mine object at the given position.
  * @param pos Position coordinates of the mine.
  */
-Mine::Mine(pair<int,int> pos) : GameObject(pos) {}
+Mine::Mine(pair<int, int> pos) : GameObject(pos) {}
 
-/** 
+/**
  * @brief Marks the mine as triggered.
  */
-void Mine::trigger() {
+void Mine::trigger()
+{
     triggered = true;
 }
 
@@ -17,14 +18,16 @@ void Mine::trigger() {
  * @brief Checks if the mine has been triggered.
  * @return True if triggered, false otherwise.
  */
-bool Mine::isTriggered() const {
+bool Mine::isTriggered() const
+{
     return triggered;
 }
 
 /**
  * @brief Marks the mine as destroyed.
  */
-void Mine::destroy() {
+void Mine::destroy()
+{
     destroyed = true;
 }
 
@@ -32,7 +35,8 @@ void Mine::destroy() {
  * @brief Checks if the mine has been destroyed.
  * @return True if destroyed, false otherwise.
  */
-bool Mine::isDestroyed() const {
+bool Mine::isDestroyed() const
+{
     return destroyed;
 }
 
@@ -40,6 +44,7 @@ bool Mine::isDestroyed() const {
  * @brief Returns the symbol representing the mine.
  * @return Character symbol for the mine - '@'.
  */
-char Mine::getSymbol() const {
+char Mine::getSymbol() const
+{
     return MINE_SYMBOL;
 }
