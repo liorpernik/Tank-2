@@ -119,7 +119,7 @@ void BoardManager::moveFiredShells() {
                 shellPtr = move(game_map[oldPos.first][oldPos.second][1]);
                 game_map[oldPos.first][oldPos.second].erase(game_map[oldPos.first][oldPos.second].begin() + 1);
             }
-            else shellPtr = move(game_map[oldPos.first][oldPos.second][0]); //extractObjectFromMap(shell.get());
+            else shellPtr = move(game_map[oldPos.first][oldPos.second][0]);
 
             // Move to new position using updateMap
             updateMap(move(shellPtr), newPos);
