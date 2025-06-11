@@ -356,7 +356,7 @@ void GameManager::run()
 		processRound();
 		dynamic_cast<BoardSatelliteView *>(board_view.get())->update(board->objMapToCharMap());
 		board->printBoard();
-		// todo: send curr steps to players
+
 		++current_step;
 		if (player_shell_count[0] == 0 && player_shell_count[1] == 0)
 		{
@@ -493,7 +493,6 @@ TankAlgorithm *GameManager::findTankAlgorithmById(Tank *tankData)
 string GameManager::generateRoundOutput(map<Tank *, ActionRequest> tankActions)
 {
 	vector<string> actions;
-	// vector<Tank*> tanks=board->getSortedTanks();
 	for (const auto &[tank, acts] : tankActions)
 	{
 		string move = actionToString(acts);
@@ -501,7 +500,7 @@ string GameManager::generateRoundOutput(map<Tank *, ActionRequest> tankActions)
 		{
 			if (tank->isKilledThisRound())
 			{
-				actions.push_back(tank->getActionSuccess() ? move + " (ignored) (killed)" : " (killed)");
+				actions.push_back(tank->getActionSuccess() ? move + " (killed)" : " (ignored) (killed)");
 				tank->setKilledThisRound(false);
 			}
 			else

@@ -15,27 +15,12 @@ int main(int argc, char** argv)
         if(argc > 1) {
             filePath = argv[1];
         }
-        //        auto playerFactory = std::make_unique<MyPlayerFactory>();
-        //        auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
-        //        GameManager game(std::move(playerFactory), std::move(tankFactory));
-        //        game.readBoard(filePath);
-        //        game.run();
-        //
-
         auto playerFactory = std::make_unique<MyPlayerFactory>();
         auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
-        for(int i=1;i<11;++i){
-            std::cout <<"test "<<i <<"\n";
+        GameManager game(std::move(playerFactory), std::move(tankFactory));
+        game.readBoard(filePath);
+        game.run();
 
-            auto playerFactory = std::make_unique<MyPlayerFactory>();
-            auto tankFactory = std::make_unique<MyTankAlgorithmFactory>();
-            filePath = "./inputs/t" + to_string(i) + ".txt";
-            GameManager game(std::move(playerFactory), std::move(tankFactory));
-            game.readBoard(filePath);
-            game.run();
-            std::cout <<"done\n";
-
-        }
     } catch (const std::exception& e) {
         std::clog << e.what() << std::endl;
         return 1;
